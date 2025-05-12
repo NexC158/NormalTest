@@ -1,46 +1,29 @@
 ﻿using System.Collections.Concurrent;
 using System.Net.Sockets;
 
-public class SignalReciever
+namespace SignalRecieverAnalyzer
 {
-    private readonly int _countOfSources; // количество подключений
-    private readonly ConcurrentDictionary<int, Task> _receiverTasks; // или List<Task>
-
-    public SignalReciever(int countOfSources) // конструктор
+    public class SignalReciever // ???????????????????????????????
     {
-        _countOfSources = countOfSources;
-    }
-
-    public async Task RunningReceiver(int countOfSources) // создаю подключения
-    {
-        for (int i = 0; i < _countOfSources; i++)
+        
+        public static async Task<double> Analizator(Socket socket)
         {
-            _receiverTasks.TryAdd(i, Task.Run(() => ProcessingSourseAsync(i))); // записываю в словарь
-        }
-
-        await Task.WhenAll(_receiverTasks.Values); // ожидаю выполнение (не знаю насколько корректна такая запись)
-
-    }
-
-    public async Task ProcessingSourseAsync(int i) // хочу тут обрабатывать данные 
-    {
-        try
-        {
-            using var proccessingSource = new TcpClient();
-
-            await proccessingSource.ConnectAsync("localhost", 10000); // ожидаю подключение
-            using var stream = proccessingSource.GetStream();
-            //using var reader = new StreamReader(stream); это вроде не надо, надо будет потыкать посмотреть
-            while (true)
-            {
-                // тут буду заниматься обработкой
-            }
+            await socket.ConnectAsync("127.0.0.1", 10000);
+            return await RecieveData(socket);
 
         }
-        catch (Exception e)
+        public static async Task<double> RecieveData(Socket socket)
         {
-            Console.WriteLine(e);
-            throw;
+            var buffer = new byte[32];
+            await socket.ReceiveAsync(buffer);
+
+            var recievedBytes = Converter(buffer);
+            return recievedBytes;
+        }
+
+        public static double Converter(byte[] bytesToConvert)
+        {
+            return BitConverter.ToDouble(bytesToConvert, 0);
         }
     }
 }
