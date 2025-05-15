@@ -10,85 +10,58 @@ namespace SignalSource
 {
     public class Program // server 
     {
-        public static async void Main(string[] args)
+        public static async Task Main(string[] args)
         {
-            var TcpEndPoint = new IPEndPoint(IPAddress.Any, 10000);
 
-            using Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            var tcpEndPoint = new IPEndPoint(IPAddress.Any, 10000);
+            using Socket listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-            socket.Bind(TcpEndPoint);
+            listener.Bind(tcpEndPoint);
+            listener.Listen(100);
+            Console.WriteLine($"Сервер запущен на {listener.LocalEndPoint}");
 
-            Console.WriteLine($"Сервер начинает слушать порт: {socket.LocalEndPoint}");
-
-            socket.Listen(100);
-
-            do
+            while (true)
             {
-                var connectedConnection = await socket.AcceptAsync();
-                Console.WriteLine($"Новое подключение {connectedConnection.RemoteEndPoint}");
+                var client = await listener.AcceptAsync();
+                Console.WriteLine($"Новый клиент: {client.RemoteEndPoint}");
 
-                var connectionTask = Task.Run(async () =>
+                // Запускаем отдельный поток для клиента
+                var tasksConnection = Task.Run(async () =>
                 {
                     try
                     {
-                        using (connectedConnection)
+                        using (client)
                         {
                             var random = new Random();
+                            while (true)
+                            {
+                                double value = random.NextDouble();
+                                byte[] data = BitConverter.GetBytes(value);
 
-                            double randomDoubleData = random.NextDouble();
-                            byte[] bytesToSend = BitConverter.GetBytes(randomDoubleData);
+                                // Гарантированная отправка
+                                int totalSent = 0;
+                                while (totalSent < data.Length) // totalSent < data.Length
+                                {
+                                    int sent = await client.SendAsync(
+                                        new ArraySegment<byte>(data, totalSent, data.Length - totalSent)
+                                    );
+                                    if (sent == 0) throw new Exception("Соединение разорвано");
+                                    totalSent += sent;
+                                }
 
-                            var sentData = await connectedConnection.SendAsync(bytesToSend);
-                            await Task.Delay(1000); // сделать синхронизацию с клиентом
+                                Console.WriteLine($"Отправлено клиенту {client.RemoteEndPoint}: {value}");
+                                await Task.Delay(1000);
+                            }
                         }
                     }
-                    catch (SocketException e)
+                    catch (Exception ex)
                     {
-                        Console.WriteLine($"Ошибка {e.Message}");
+                        Console.WriteLine($"Ошибка с клиентом: {ex.Message}");
                     }
-
                 });
-
-            } while (socket.Connected);
+            }
         }
 
-        public static async Task PeriodPeredachi(Task task)
-        {
-            await task;
-            await Task.Delay(1000);
-        }
-
-        public static async Task Peredacha(Socket socket)
-        {
-            using var connection = await CreateNewConnectionAsync(socket);
-            await SendDataAsync(connection);
-        }
-
-
-        public static async Task<Socket> CreateNewConnectionAsync(Socket socket)
-        {
-            using Socket connection = await socket.AcceptAsync();
-            return connection;
-        }
-
-        public static async Task SendDataAsync(Socket socket)
-        {
-            var dataToSend = GenerateMessage();
-            await socket.SendAsync(dataToSend);
-        }
-
-        public static byte[] GenerateMessage()
-        {
-            var randomDouble = RandomGeneration();
-
-            return BitConverter.GetBytes(randomDouble);
-        }
-
-        public static double RandomGeneration()
-        {
-            var random = new Random();
-            var result = random.NextDouble();
-            return result;
-        }
+        
     }
 }

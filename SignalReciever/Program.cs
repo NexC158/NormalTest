@@ -10,39 +10,54 @@ namespace SignalReciever
 {
     public class Program // client
     {
-        public static async void Main(string[] args)
+        public static async Task Main(string[] args)
         {
-            var tcpEndPoint = new IPEndPoint(IPAddress.Any, 10000);
+            var countOfConnections = 100;
+            var tasks = new Task[countOfConnections];
 
-            var connections = new Task[100];
-
-            for (int i = 0; i < connections.Length; i++)
+            for (int i = 0; i < countOfConnections; i++)
             {
-                connections[i] = Task.Run(async () =>
+                int clientId = i;
+                tasks[i] = Task.Run(async () =>
                 {
                     while (true)
                     {
+                        using Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                         try
                         {
-                            using Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                            await socket.ConnectAsync(tcpEndPoint);
+                            Console.WriteLine($"Клиент {clientId} подключается...");
+                            await socket.ConnectAsync("127.0.0.1", 10000);
+                            Console.WriteLine($"Клиент {clientId} подключен");
 
-                            byte[] buffer = new byte[30]; // сделать протокол
+                            byte[] buffer = new byte[8];
+                            while (true)
+                            {
+                                // Гарантированное чтение 8 байт (размер double)
+                                int totalReceived = 0;
+                                while (totalReceived < 8)
+                                {
+                                    int received = await socket.ReceiveAsync(
+                                        new ArraySegment<byte>(buffer, totalReceived, 8 - totalReceived),
+                                        SocketFlags.None
+                                    );
+                                    if (received == 0) throw new Exception("Сервер закрыл соединение");
+                                    totalReceived += received;
+                                }
 
-                            var recievedBytes = await socket.ReceiveAsync(buffer);
-
-                            var recievedData = BitConverter.GetBytes(recievedBytes);
-                            Console.WriteLine($"Соединие # {i} получило сообщение {recievedData}");
+                                double value = BitConverter.ToDouble(buffer, 0);
+                                Console.WriteLine($"Клиент {clientId} получил: {value}");
+                            }
                         }
-                        catch (SocketException e)
+                        catch (Exception ex)
                         {
-                            Console.WriteLine($"Соединие # {i} ошибка {e.Message}");
+                            Console.WriteLine($"Клиент {clientId} ошибка: {ex.Message}");
+                            await Task.Delay(2000); // Пауза перед переподключением
                         }
                     }
-
                 });
             }
-            await Task.WhenAll(connections);
+
+            await Task.WhenAll(tasks);
         }
 
         
