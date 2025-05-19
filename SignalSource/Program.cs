@@ -5,15 +5,24 @@ using System.Net.Sockets;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using SignalSource.Synchronization;
+using SignalSource.ConnectionManager;
+using SignalSource.Data;
 
 namespace SignalSource
 {
-    public class Program // server 
-    {
+    internal class Program // server 
+    { 
         public static async Task Main(string[] args)
         {
+            var connect = new ConnectionManage();
+            var data = new DataService();
+            var sync = new ClientSynchronization(connect, data);
+            
+            await sync.StartTransferDataAsync();
 
-            var tcpEndPoint = new IPEndPoint(IPAddress.Any, 10000);
+
+            /*var tcpEndPoint = new IPEndPoint(IPAddress.Any, 10000);
             using Socket listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             listener.Bind(tcpEndPoint);
@@ -50,7 +59,7 @@ namespace SignalSource
                                 }
 
                                 Console.WriteLine($"Отправлено клиенту {client.RemoteEndPoint}: {value}");
-                                await Task.Delay(1000);
+                                await Task.Delay(10);
                             }
                         }
                     }
@@ -59,9 +68,7 @@ namespace SignalSource
                         Console.WriteLine($"Ошибка с клиентом: {ex.Message}");
                     }
                 });
-            }
+            }*/
         }
-
-        
     }
 }

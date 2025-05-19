@@ -5,6 +5,9 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using SignalRecieverAnalyzer.Connection;
+using SignalRecieverAnalyzer.DataRecieveAndAnalyzer;
+using SignalRecieverAnalyzer.Synchronization;
 
 namespace SignalReciever
 {
@@ -12,7 +15,13 @@ namespace SignalReciever
     {
         public static async Task Main(string[] args)
         {
-            var countOfConnections = 100;
+            var connector = new ClientConnection();
+            var recieve = new DataProccesing();
+            var sync = new Working(connector, recieve);
+
+            await sync.StartRecieveAsync();
+            
+            /*var countOfConnections = 100;
             var tasks = new Task[countOfConnections];
 
             for (int i = 0; i < countOfConnections; i++)
@@ -56,13 +65,7 @@ namespace SignalReciever
                     }
                 });
             }
-
-            await Task.WhenAll(tasks);
+            await Task.WhenAll(tasks);*/
         }
-
-        
-
-
-
     }
 }
