@@ -10,6 +10,6 @@ namespace SignalSource.ConnectionManager
     public interface IConnectionManage
     {
         Task<Socket> StartListenerAsync();
-        Task<Socket> ClientsConnectionSocket(Socket connection);
+        Task<Socket> ClientsConnectionSocket(Socket listener);
     }
 }

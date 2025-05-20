@@ -21,11 +21,11 @@ namespace SignalSource.ConnectionManager
             return listener;
         }
 
-        public async Task<Socket> ClientsConnectionSocket(Socket connection)
+        public async Task<Socket> ClientsConnectionSocket(Socket listener)
         {
-            var socket = await connection.AcceptAsync();
+            var connection = await listener.AcceptAsync();
 
-            return socket;
+            return connection;
         }
 
         

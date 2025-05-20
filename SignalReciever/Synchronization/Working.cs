@@ -32,7 +32,7 @@ namespace SignalRecieverAnalyzer.Synchronization
             for (int i = 0; i < maxConnections; i++) 
             {
                 var connectedId = Interlocked.Increment(ref currentConnection);
-
+                Console.WriteLine($"Начинаю попытку подключения для {connectedId} клиента");
                 _connectionTasks.TryAdd(connectedId, Task.Run(() =>
                     WorkingWithConnection(connectedId, _ct.Token)
                 ));
@@ -53,7 +53,7 @@ namespace SignalRecieverAnalyzer.Synchronization
                     
                         try
                         {
-                            var recievedData = await _dataProccesing.RecieveDoubleAsync(connection);
+                            var recievedData = await _dataProccesing.RecieveDoubleAsync(connection); 
                             Console.WriteLine($"Клиент {connectedId} получил данные: {recievedData}");
                         }
                         catch (Exception ex)
@@ -66,11 +66,13 @@ namespace SignalRecieverAnalyzer.Synchronization
                 catch(Exception ex)
                 {
                     Console.WriteLine($"Ошибка подключения, клиент {connectedId} {ex.Message} ");
+
+                    // сюда пихнуть класс для реконнекта
                 }
 
                 if (!ct.IsCancellationRequested)
                 {
-                    await Task.Delay(1000, ct);
+                    await Task.Delay(1000, ct); // или сюда пихнуть класс для реконнекта
                     Console.WriteLine("Сработал CancellationTocken");
                 }
                 
