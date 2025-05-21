@@ -5,70 +5,41 @@ using System.Net.Sockets;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using SignalSource.Synchronization;
+using SignalSource.Listener;
 using SignalSource.ConnectionManager;
-using SignalSource.Data;
+using SignalSource.DataManager;
+using SignalSource.DataGenerate;
 
 namespace SignalSource
 {
-    internal class Program // server 
+    public class Program // server 
     { 
         public static async Task Main(string[] args)
         {
             var connect = new ConnectionManage();
-            var data = new DataService();
-            var sync = new ClientSynchronization(connect, data);
+            var data = new DataGeneration();
+            var sync = new StartListenersAsync();
             
-            await sync.StartTransferDataAsync();
+            await connect.StartTransferDataAsync();
 
 
-            /*var tcpEndPoint = new IPEndPoint(IPAddress.Any, 10000);
-            using Socket listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+           /*1) обертка сокета, спросить еще раз, не понял
+             2) из него надо делать оберку или че как почему он должен быть приватным ClientsConnectionSocket?
+             3) сделать channelSender - прокси - это будет обертка для сокета, спросить что имеется ввиду, и куда его надо засунуть
+             4) как доставать каналы из ConnectionManager?
+             5) 
 
-            listener.Bind(tcpEndPoint);
-            listener.Listen(100);
-            Console.WriteLine($"Сервер запущен на {listener.LocalEndPoint}");
-
-            while (true)
-            {
-                var client = await listener.AcceptAsync();
-                Console.WriteLine($"Новый клиент: {client.RemoteEndPoint}");
-
-                // Запускаем отдельный поток для клиента
-                var tasksConnection = Task.Run(async () =>
-                {
-                    try
-                    {
-                        using (client)
-                        {
-                            var random = new Random();
-                            while (true)
-                            {
-                                double value = random.NextDouble();
-                                byte[] data = BitConverter.GetBytes(value);
-
-                                // Гарантированная отправка
-                                int totalSent = 0;
-                                while (totalSent < data.Length) // totalSent < data.Length
-                                {
-                                    int sent = await client.SendAsync(
-                                        new ArraySegment<byte>(data, totalSent, data.Length - totalSent)
-                                    );
-                                    if (sent == 0) throw new Exception("Соединение разорвано");
-                                    totalSent += sent;
-                                }
-
-                                Console.WriteLine($"Отправлено клиенту {client.RemoteEndPoint}: {value}");
-                                await Task.Delay(10);
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Ошибка с клиентом: {ex.Message}");
-                    }
-                });
-            }*/
+                сделал генерацию данных, спросить пральна или нет*/
         }
     }
 }
+
+// 1) это класс снаружи моих сокетов внутри держит сокет. он прячет все. Channel Sender
+
+
+
+
+// в тайпе 1 байт 
+
+
+// big ending or little ending  // делать по машинному

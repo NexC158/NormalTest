@@ -7,7 +7,8 @@ using System.Text;
 using System.Threading.Tasks;
 using SignalRecieverAnalyzer.Connection;
 using SignalRecieverAnalyzer.DataRecieveAndAnalyzer;
-using SignalRecieverAnalyzer.Synchronization;
+using SignalRecieverAnalyzer.Working;
+
 
 namespace SignalReciever
 {
@@ -15,9 +16,9 @@ namespace SignalReciever
     {
         public static async Task Main(string[] args)
         {
-            var connector = new ClientConnection();
+            var connector = new ConnectionToServer();
             var recieve = new DataProccesing();
-            var sync = new Working(connector, recieve);
+            var sync = new StartWorking();
 
             await sync.StartRecieveAsync();
             

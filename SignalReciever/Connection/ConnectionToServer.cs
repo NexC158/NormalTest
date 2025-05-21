@@ -9,7 +9,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SignalRecieverAnalyzer.Connection
 {
-    public class ClientConnection : IClientConnection
+    public class ConnectionToServer
     {
         public async Task<Socket> ConnectionAsync()
         {

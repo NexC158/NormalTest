@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 
 namespace SignalRecieverAnalyzer.DataRecieveAndAnalyzer
 {
-    public class DataProccesing : IDataProccesing
+    public class DataProccesing
     {
 
         public async Task<double> RecieveDoubleAsync(Socket socket)
         {
             byte[] buffer = new byte[11];
 
-            int received = await socket.ReceiveAsync(buffer, 0);
+            int received = await socket.ReceiveAsync(buffer, 0); // вот тут надо сделать проверку на второй тип данных
 
             return BitConverter.ToDouble(buffer, 3);
         }
@@ -41,8 +41,7 @@ namespace SignalRecieverAnalyzer.DataRecieveAndAnalyzer
 
             else if (Math.Abs(data1 - data2) > 0.5)
             {
-                shiftId++;
-
+                shiftId++; // тут понадобится инкремент
             }
             return resultBytes;
         }
