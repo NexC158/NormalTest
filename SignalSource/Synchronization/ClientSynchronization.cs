@@ -28,17 +28,23 @@ namespace SignalSource.Synchronization
         public async Task StartTransferDataAsync()
         {
             var listener = await _listener.StartListenerAsync();
+
             
-            var client = await _listener.ClientsConnectionSocket(listener);
-            
+
             try
             {
                 do
                 {
+
+                    var client = await _listener.ClientsConnectionSocket(listener);
+
+
                     //var clientId = Interlocked.Increment(ref _countConnections);
-                    _clients.TryAdd(Interlocked.Increment(ref _countConnections), Task.Run(() =>
-                    _listener.ClientsConnectionSocket(client))); // _dataService.DataSendAsync(client, _dataService.FirstTypeDataGeneration()) // а это наверное буду использовать там,  
-                                                                   // где открою этот словарь для отправки значений
+                    _clients.TryAdd(Interlocked.Increment(
+                        ref _countConnections),
+                        client);
+                        // _dataService.DataSendAsync(client, _dataService.FirstTypeDataGeneration()) // а это наверное буду использовать там,  
+                           // где открою этот словарь для отправки значений
                     Console.WriteLine($"К серверу подключен клиент {_countConnections}");
                 } while (!_ct.IsCancellationRequested);
             }
@@ -46,6 +52,11 @@ namespace SignalSource.Synchronization
             {
                 Console.WriteLine(ex.Message);
             }
+        }
+
+        private Task<Socket> ProcessNewClinet(Socket client)
+        {
+            return  _listener.ClientsConnectionSocket(client);
         }
     }
 }
