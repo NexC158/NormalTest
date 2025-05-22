@@ -25,7 +25,7 @@ namespace SignalSource.ConnectionManager
 
                     _clients.TryAdd(Interlocked.Increment(
                         ref _countConnections),
-                        connection); // вот тут лежит "канал" не таска, а именно открытый канал с приемником
+                        connection); // вот тут лежит "канал" а не таска, именно открытый канал с приемником
 
                     Console.WriteLine($"К серверу подключен клиент {_countConnections}"); // сделать класс канал менеджер. в наружном классе регулировать канал менеджер
                 } while (!_ct.IsCancellationRequested);

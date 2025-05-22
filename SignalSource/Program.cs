@@ -9,6 +9,7 @@ using SignalSource.Listener;
 using SignalSource.ConnectionManager;
 using SignalSource.DataManager;
 using SignalSource.DataGenerate;
+using SignalSource._example_.channels;
 
 namespace SignalSource
 {
@@ -16,12 +17,16 @@ namespace SignalSource
     { 
         public static async Task Main(string[] args)
         {
-            var connect = new ConnectionManage();
+            /*var connect = new ConnectionManage();
             var data = new DataGeneration();
             var sync = new StartListenersAsync();
             
-            await connect.StartTransferDataAsync();
+            await connect.StartTransferDataAsync();*/
 
+            var manager = new ClientsManager();
+
+             await manager.ManageRequests();
+            
 
            /*1) обертка сокета, спросить еще раз, не понял
              2) из него надо делать оберку или че как почему он должен быть приватным ClientsConnectionSocket?

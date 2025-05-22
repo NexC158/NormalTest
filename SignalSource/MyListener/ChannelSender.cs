@@ -20,9 +20,9 @@ namespace SignalSource.Listener
             return _listenerSocket;
         }
 
-        public async Task<Socket> AcceptClientsAsync()
+        /*public async Task<Socket> AcceptClientsAsync()
         {
-            return await _startListenerAsync.ClientsConnectionSocket(_listenerSocket);
-        }
+            return _startListenerAsync.ServerStartListen(_listenerSocket);
+        }*/
     }
 }
