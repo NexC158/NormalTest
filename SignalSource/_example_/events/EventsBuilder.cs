@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Linq.Expressions;
+using System.Threading;
 
 namespace SignalSource._example_.events;
 
@@ -36,38 +37,56 @@ internal class EventSynchronizator
 
     private int _activeConnections = 0;
 
-    public EventSynchronizator()
-    {
-        _timerForTypeOne = new Timer(FirstEventActivation, TimeToSendTypeOne, 0, Timeout.Infinite);
 
-        _timerForTypeTwo = new Timer(SecondEventActivation, TimeToSendTypeTwo, 0, Timeout.Infinite);
+
+    public EventSynchronizator() // это у меня издатель
+    {
+        _timerForTypeOne = new Timer(FirstEventActivation, null, Timeout.Infinite, Timeout.Infinite);
+
+        _timerForTypeTwo = new Timer(SecondEventActivation, null, Timeout.Infinite, Timeout.Infinite);
     }
 
     private void FirstEventActivation(object state)
     {
         if (_activeConnections >= 1)
         {
-            _timerForTypeOne.Change(TimeSpan.Zero, TimeSpan.FromMilliseconds(1000));
             TimeToSendTypeOne.Invoke();
-            Console.WriteLine("сработал второй ивент на отправку данных");
+            Console.WriteLine("сработал первый ивент на отправку данных");
 
+            _timerForTypeOne.Change(TimeSpan.Zero, TimeSpan.FromMilliseconds(10000));
         }
-            
+        else
+        {
+            Console.WriteLine($"Проблемка#1");
+        }
     }
 
     private void SecondEventActivation(object state)
     {
         if (_activeConnections >= 1)
         {
-            _timerForTypeTwo.Change(TimeSpan.Zero, TimeSpan.FromMilliseconds(_random.Next(400, 600)));
             TimeToSendTypeTwo.Invoke();
             Console.WriteLine("сработал второй ивент на отправку данных");
+            _timerForTypeTwo.Change(TimeSpan.Zero, TimeSpan.FromMilliseconds(_random.Next(4000, 6000)));
+        }
+        else
+        {
+            Console.WriteLine($"Проблемка#2");
         }
     }
 
     public void NotificateOfNewConnection()
     {
-        
         Interlocked.Increment(ref _activeConnections);
+        _timerForTypeOne.Change(0, 0);
+        _timerForTypeTwo.Change(0, 0);
+
+        /*_timerForTypeOne.Change(TimeSpan.Zero, TimeSpan.FromMilliseconds(1000));
+        _timerForTypeTwo.Change(TimeSpan.Zero, TimeSpan.FromMilliseconds(_random.Next(400, 600)));*/
+    }
+
+    public void UnsubscribeConnection()
+    {
+        Interlocked.Decrement(ref _activeConnections);
     }
 }

@@ -28,7 +28,7 @@ internal class ClientsManager
 
             _channelsDict.TryAdd(Interlocked.Increment(ref _currentChannel), channel); // store channel to dict
 
-            _ = HandleChannelProcessing(channel);
+            _ = Task.Run(()=> HandleChannelProcessing(channel));
             // catch
 
             // simple: _= channel.ProccessChannel();
@@ -39,8 +39,20 @@ internal class ClientsManager
 
     private async Task HandleChannelProcessing(ChannelManager channel)
     {
+        try
+        {
+            await channel.ProccessChannel();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+        finally
+        {
+            await Task.Delay(1000);
+            await channel.UnsubscribeChannel();
+        }
         
-        await channel.ProccessChannel();
         //_channelsDict.TryRemove(channelId, out channel);// remove channel from dict
     }
 }

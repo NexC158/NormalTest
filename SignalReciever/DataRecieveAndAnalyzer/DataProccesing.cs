@@ -12,7 +12,7 @@ namespace SignalRecieverAnalyzer.DataRecieveAndAnalyzer
 
         public async Task<double> RecieveDoubleAsync(Socket socket)
         {
-            byte[] buffer = new byte[11];
+            byte[] buffer = new byte[1024];
 
             int received = await socket.ReceiveAsync(buffer, 0); // вот тут надо сделать проверку на второй тип данных
 
@@ -22,7 +22,7 @@ namespace SignalRecieverAnalyzer.DataRecieveAndAnalyzer
         public async Task<byte[]> Analyzer(Socket socket1, Socket socket2)
         {
             int shiftId = 0;
-            byte[] resultBytes = new byte[20];
+            byte[] resultBytes = new byte[1024];
             var data1 = await RecieveDoubleAsync(socket1);
             var data2 = await RecieveDoubleAsync(socket2);
 

@@ -25,10 +25,7 @@ namespace SignalRecieverAnalyzer.Working
             {
                 var connectedId = Interlocked.Increment(ref currentConnection);
                 Console.WriteLine($"Начинаю попытку подключения для {connectedId} клиента");
-                _connectionTasks.TryAdd(connectedId, Task.Run(() =>
-                    WorkingWithConnection(connectedId, _ct.Token)
-                ));
-
+                _connectionTasks.TryAdd(connectedId, WorkingWithConnection(connectedId, _ct.Token));
             }
             await Task.WhenAll(_connectionTasks.Values);
         }

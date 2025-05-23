@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace SignalSource._example_.channels;
 
-internal class ChannelManager
+internal class ChannelManager // это подпищик
 {
     private readonly ChannelSender _sender;
     private readonly EventsBuilder _eventsBuilder;
@@ -21,7 +21,6 @@ internal class ChannelManager
         _eventsBuilder = eventsBuilder;
         _sync = sync;
 
-        
     }
 
     private async void SendDataTypeOne()
@@ -58,5 +57,12 @@ internal class ChannelManager
         _sync.TimeToSendTypeOne += SendDataTypeOne;
         _sync.TimeToSendTypeTwo += SendDataTypeTwo;
         _sync.NotificateOfNewConnection();
+    }
+
+    public async Task UnsubscribeChannel()
+    {
+        _sync.TimeToSendTypeOne -= SendDataTypeOne;
+        _sync.TimeToSendTypeTwo -= SendDataTypeTwo;
+        _sync.UnsubscribeConnection();
     }
 }
