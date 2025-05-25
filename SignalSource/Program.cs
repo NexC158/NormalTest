@@ -5,10 +5,6 @@ using System.Net.Sockets;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using SignalSource.Listener;
-using SignalSource.ConnectionManager;
-using SignalSource.DataManager;
-using SignalSource.DataGenerate;
 using SignalSource._example_.channels;
 
 namespace SignalSource
@@ -47,4 +43,4 @@ namespace SignalSource
 // в тайпе 1 байт 
 
 
-// big ending or little ending  // делать по машинному
+// big-endian и little-endian  // делать по машинному

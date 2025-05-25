@@ -9,11 +9,13 @@ using System.Threading.Tasks;
 
 namespace SignalSource._example_.channels;
 
-internal class ChannelManager // это подпищик
+internal class ChannelManager
 {
     private readonly ChannelSender _sender;
     private readonly EventsBuilder _eventsBuilder;
     private readonly EventSynchronizator _sync;
+
+    private Random _random = new Random();
 
     public ChannelManager(ChannelSender sender, EventsBuilder eventsBuilder, EventSynchronizator sync)
     {
@@ -23,7 +25,7 @@ internal class ChannelManager // это подпищик
 
     }
 
-    private async void SendDataTypeOne()
+    private async Task SendingDataTypeOne()
     {
         try
         {
@@ -37,7 +39,7 @@ internal class ChannelManager // это подпищик
         }
     }
 
-    private async void SendDataTypeTwo()
+    private async Task SendingDataTypeTwo()
     {
         try
         {
@@ -53,16 +55,14 @@ internal class ChannelManager // это подпищик
 
     public async Task ProccessChannel()
     {
-        
-        _sync.TimeToSendTypeOne += SendDataTypeOne;
-        _sync.TimeToSendTypeTwo += SendDataTypeTwo;
-        _sync.NotificateOfNewConnection();
+        _sync.TimeToSendTypeOne += async () => await SendingDataTypeOne();
+        _sync.TimeToSendTypeTwo += async () => await SendingDataTypeTwo();
+
+        _sync.StartTimers();
     }
 
     public async Task UnsubscribeChannel()
     {
-        _sync.TimeToSendTypeOne -= SendDataTypeOne;
-        _sync.TimeToSendTypeTwo -= SendDataTypeTwo;
-        _sync.UnsubscribeConnection();
+
     }
 }

@@ -34,8 +34,8 @@ namespace SignalRecieverAnalyzer.Working
         {
             var connect = new ConnectionToServer();
             var data = new DataProccesing();
-            try
-            {
+            //try
+            //{
                 using var connection = await connect.ConnectionAsync();
 
                 Console.WriteLine($"Подключен клиент: {connectedId}");
@@ -44,7 +44,7 @@ namespace SignalRecieverAnalyzer.Working
                 {
                     while (true)
                     {
-                        var recievedData = await data.RecieveDoubleAsync(connection);
+                        var recievedData = await data.RecieveDataAsync(connection);
                         Console.WriteLine($"Клиент {connectedId} получил данные: {recievedData}");
                     }
                 }
@@ -52,19 +52,19 @@ namespace SignalRecieverAnalyzer.Working
                 {
                     Console.WriteLine($"Ошибка получения данных клиентом: {connectedId}. {ex.Message}");
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Ошибка подключения, клиент {connectedId} {ex.Message} ");
+            //}
+            //catch (Exception ex)
+            //{
+              //  Console.WriteLine($"Ошибка подключения, клиент {connectedId} {ex.Message} ");
 
                 // сюда пихнуть что-то для реконнекта
-            }
+            //}
 
-            if (!ct.IsCancellationRequested)
-            {
-                await Task.Delay(1000, ct); // или сюда пихнуть что-то для реконнекта
-                Console.WriteLine("Сработал CancellationTocken");
-            }
+           // if (!ct.IsCancellationRequested)
+            //{
+                //await Task.Delay(1000, ct); // или сюда пихнуть что-то для реконнекта
+               // Console.WriteLine("Сработал CancellationTocken");
+            //}
 
 
         }

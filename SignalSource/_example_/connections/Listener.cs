@@ -32,11 +32,11 @@ internal class Listener
         return new Listener(listeningSocket);
     }
 
-    public async Task<ChannelSender> WaitChannelRequest()
+    public ChannelSender WaitChannelRequest()
     {
-        var clientSocketAccept = await _listeningSocket.AcceptAsync();
+        var clientSocketAccept = _listeningSocket.Accept();
 
-        Console.WriteLine("Получено новое подключение");
+        Console.WriteLine("Получено новое подключение. Сработал метод WaitChannelRequest()");
         
         return new ChannelSender(clientSocketAccept);
     }
@@ -47,49 +47,50 @@ internal class ChannelSender
 {
     private Socket _clientSocket;
 
+
     public ChannelSender(Socket clientSocket)
     {
         _clientSocket = clientSocket;
     }
 
-    enum DataTypes : byte // да я знаю что он по умолчанию ставится как int, написал для себя, чтобы когда у меня не будет что-то работать, я сразу обратил внимание что это не из-за enama 
+    enum DataTypes : byte // byte??int
     {
-        first = 1,
-        second = 2
+        first,
+        second
     }
 
-    public async Task SendTypeOne(double value) // что-то не то
+    public async Task SendTypeOne(double value)
     {
-        var dataToSend = BitConverter.GetBytes(value);
-        await SendDataAsync(DataTypes.first, dataToSend);
+        var valueToBytes = BitConverter.GetBytes(value);
+
+        var dataToSend = FormingData(DataTypes.first, valueToBytes);
+
+        await _clientSocket.SendAsync(dataToSend);
     }
 
     public async Task SendTypeTwo(byte[] data)
     {
-        await SendDataAsync(DataTypes.first, data);
+        var dataToSend = FormingData(DataTypes.second, data);
+
+        await _clientSocket.SendAsync(dataToSend);
     }
 
-    private async Task SendDataAsync(DataTypes dataType, byte[] dataToSend)
+    private byte[] FormingData(DataTypes dataType, byte[] dataToSend)
     {
-        try
-        {
-            var typeBytes = BitConverter.GetBytes((int)dataType);
 
-            var sizeBytes = BitConverter.GetBytes(sizeof(uint) + dataToSend.Length);
+        var typeBytes = new byte[] { (byte)dataType };
 
-            var formingBytesArray = new byte[sizeBytes.Length + typeBytes.Length + dataToSend.Length];
+        var sizeBytes = BitConverter.GetBytes(sizeof(uint) + dataToSend.Length);
 
-            Buffer.BlockCopy(sizeBytes, 0, formingBytesArray, 0, sizeBytes.Length); // мб использовать MemoryStream
-            Buffer.BlockCopy(typeBytes, 0, formingBytesArray, sizeBytes.Length, typeBytes.Length);
-            Buffer.BlockCopy(dataToSend, 0, formingBytesArray, sizeBytes.Length + typeBytes.Length, dataToSend.Length);
+        var formingBytesArray = new byte[sizeBytes.Length + typeBytes.Length + dataToSend.Length];
 
-            await _clientSocket.SendAsync(formingBytesArray);
+        Buffer.BlockCopy(sizeBytes, 0, formingBytesArray, 0, sizeBytes.Length); // мб использовать MemoryStream
 
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.Message);
-        }
+        Buffer.BlockCopy(typeBytes, 0, formingBytesArray, sizeBytes.Length, typeBytes.Length);
+
+        Buffer.BlockCopy(dataToSend, 0, formingBytesArray, sizeBytes.Length + typeBytes.Length, dataToSend.Length);
+
+        return formingBytesArray;
     }
 
 }

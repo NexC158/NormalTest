@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
+using System.Runtime.InteropServices.Marshalling;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -9,17 +10,48 @@ namespace SignalRecieverAnalyzer.DataRecieveAndAnalyzer
 {
     public class DataProccesing
     {
-
-        public async Task<double> RecieveDoubleAsync(Socket socket)
+        enum DataTypes : byte // byte??int
         {
-            byte[] buffer = new byte[1024];
-
-            int received = await socket.ReceiveAsync(buffer, 0); // вот тут надо сделать проверку на второй тип данных
-
-            return BitConverter.ToDouble(buffer, 3);
+            first,
+            second
         }
 
-        public async Task<byte[]> Analyzer(Socket socket1, Socket socket2)
+        public async Task<string> RecieveDataAsync(Socket socket)
+        {
+            byte[] buffer = new byte[1000000];
+
+            int received = await socket.ReceiveAsync(buffer, 0);// вот тут надо сделать проверку на второй тип данных
+            uint primer = 4141230412;
+            var primerToBytes = BitConverter.GetBytes(primer);
+            StringBuilder sb = new StringBuilder();
+            if (buffer[4] == (byte)DataTypes.first)
+            {
+                
+                var size = received;
+                sb.Append("Размер: ");
+                sb.Append(size);
+                sb.Append(" |Тип данных: ");
+                sb.Append(" 1");
+                sb.Append(" |Payload: ");
+                sb.Append(BitConverter.ToDouble(buffer, 5)); // длина
+                
+            }
+            else if (buffer[4] == (byte)DataTypes.second)
+            {
+                var size = received;
+                sb.Append("Размер: ");
+                sb.Append(size);
+                sb.Append(" |Тип данных: ");
+                sb.Append(" 2");
+                sb.Append(" |Payload: ");
+                sb.Append(BitConverter.ToDouble(buffer, 5));
+                //Console.WriteLine("------------пришел шум------------");
+                
+            }
+            return sb.ToString();
+        }
+
+        /*public async Task<byte[]> Analyzer(Socket socket1, Socket socket2)
         {
             int shiftId = 0;
             byte[] resultBytes = new byte[1024];
@@ -44,7 +76,7 @@ namespace SignalRecieverAnalyzer.DataRecieveAndAnalyzer
                 shiftId++; // тут понадобится инкремент
             }
             return resultBytes;
-        }
+        }*/
 
         
     }
