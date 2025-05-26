@@ -15,7 +15,7 @@ internal class EventsBuilder
 
     public byte[] BuildTypeTwo()
     {
-        var randomLenght = _random.Next(1, 1000);
+        var randomLenght = _random.Next(1, 100000);
         var secondTypeData = new byte[randomLenght];
         _random.NextBytes(secondTypeData);
         return secondTypeData;
@@ -23,7 +23,7 @@ internal class EventsBuilder
 }
 
 
-internal class EventSynchronizator 
+internal class EventSynchronizator // ?¯\_(ツ)_/¯
 {
     public event Action TimeToSendTypeOne;
     public event Action TimeToSendTypeTwo;

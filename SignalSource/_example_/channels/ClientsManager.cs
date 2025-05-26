@@ -15,13 +15,11 @@ internal class ClientsManager
 
     private ConcurrentDictionary<int, ChannelManager> _channelsDict = new ConcurrentDictionary<int, ChannelManager>();
 
-    public event ChannelEventHandler ChannelIsCreated;
-
     public async Task ManageRequests()
     {
         var sync = new EventSynchronizator(); // var sync = new EventSynchronizator();
 
-        var listener = Listener.StartListening(); // listener = StartListening()
+        var listener = Listener.StartListening(10000); // listener = StartListening()
         do
         {
             // try

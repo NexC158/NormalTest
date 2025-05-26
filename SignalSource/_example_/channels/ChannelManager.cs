@@ -15,8 +15,6 @@ internal class ChannelManager
     private readonly EventsBuilder _eventsBuilder;
     private readonly EventSynchronizator _sync;
 
-    private Random _random = new Random();
-
     public ChannelManager(ChannelSender sender, EventsBuilder eventsBuilder, EventSynchronizator sync)
     {
         _sender = sender;
@@ -63,6 +61,7 @@ internal class ChannelManager
 
     public async Task UnsubscribeChannel()
     {
-
+        _sync.TimeToSendTypeOne -= async () => await SendingDataTypeOne();
+        _sync.TimeToSendTypeTwo -= async () => await SendingDataTypeTwo();
     }
 }

@@ -15,16 +15,20 @@ namespace SignalRecieverAnalyzer.Working
     internal class StartWorking
     {
         private ConcurrentDictionary<int, Task> _connectionTasks = new ConcurrentDictionary<int, Task>();
-        private int maxConnections = 100; // надо куда-нибудь вынести, чтобы сразу было понятно сколько подключений
-        private int currentConnection = 0;
+
+        private int _currentConnection = 0;
+
         private readonly CancellationTokenSource _ct = new();
 
-        public async Task StartRecieveAsync()
+
+        public async Task ConnectingToServerAsync(int maxConnections)
         {
             for (int i = 0; i < maxConnections; i++)
             {
-                var connectedId = Interlocked.Increment(ref currentConnection);
-                Console.WriteLine($"Начинаю попытку подключения для {connectedId} клиента");
+                var connectedId = Interlocked.Increment(ref _currentConnection);
+
+                Console.WriteLine($"Сработал StartRecieveAsync | Начинаю попытку подключения для {connectedId} клиента");
+
                 _connectionTasks.TryAdd(connectedId, WorkingWithConnection(connectedId, _ct.Token));
             }
             await Task.WhenAll(_connectionTasks.Values);
@@ -32,41 +36,32 @@ namespace SignalRecieverAnalyzer.Working
 
         private async Task WorkingWithConnection(int connectedId, CancellationToken ct)
         {
-            var connect = new ConnectionToServer();
             var data = new DataProccesing();
-            //try
-            //{
-                using var connection = await connect.ConnectionAsync();
 
-                Console.WriteLine($"Подключен клиент: {connectedId}");
+            var connection = await ClientConnection.ConnectionToServerAsync("127.0.0.1", 10000);
 
-                try
+            Console.WriteLine($"Сработал WorkingWithConnection | Подключен клиент: {connectedId}");
+
+            try
+            {
+                while (true)
                 {
-                    while (true)
-                    {
-                        var recievedData = await data.RecieveDataAsync(connection);
-                        Console.WriteLine($"Клиент {connectedId} получил данные: {recievedData}");
-                    }
+                    var recievedData = await data.RecieveDataAsync(connection);
+                    Console.WriteLine($"Вечный цикл | WorkingWithConnection | Клиент {connectedId} получил данные: {recievedData}");
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Ошибка получения данных клиентом: {connectedId}. {ex.Message}");
-                }
-            //}
-            //catch (Exception ex)
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка подключения, клиент {connectedId} {ex.Message} ");
+
+                //сюда пихнуть что - то для реконнекта
+            }
+
+            //if (!ct.IsCancellationRequested)
             //{
-              //  Console.WriteLine($"Ошибка подключения, клиент {connectedId} {ex.Message} ");
-
-                // сюда пихнуть что-то для реконнекта
+            //    await Task.Delay(1000, ct); // или сюда пихнуть что-то для реконнекта
+            //    Console.WriteLine("Сработал CancellationTocken");
             //}
-
-           // if (!ct.IsCancellationRequested)
-            //{
-                //await Task.Delay(1000, ct); // или сюда пихнуть что-то для реконнекта
-               // Console.WriteLine("Сработал CancellationTocken");
-            //}
-
-
         }
     }
 }
