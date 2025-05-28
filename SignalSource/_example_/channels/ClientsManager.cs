@@ -18,31 +18,32 @@ internal class ClientsManager
     public async Task ManageRequests()
     {
         var sync = new EventSynchronizator(); // var sync = new EventSynchronizator();
+        
+        var eventsBuilder = new EventsBuilder();
 
         var listener = Listener.StartListening(10000); // listener = StartListening()
         do
         {
-            // try
+            try
+            {
+                var sender = await listener.WaitChannelRequest(); // sender = listener.StartListening()
 
-            var sender = listener.WaitChannelRequest(); // sender = listener.StartListening()
+                // var eventsBuilder = new EventsBuilder()
 
-            var eventsBuilder = new EventsBuilder(); // var eventsBuilder = new EventsBuilder()
+                var channel = new ChannelManager(sender, eventsBuilder, sync); // channel = new (sender, sync, eventsBuilder)
 
-            var channel = new ChannelManager(sender, eventsBuilder, sync); // channel = new (sender, sync, eventsBuilder)
+                var channelId = Interlocked.Increment(ref _currentChannel);
 
-            var channelId = Interlocked.Increment(ref _currentChannel);
+                _channelsDict.TryAdd(channelId, channel); // store channel to dict
 
-            _channelsDict.TryAdd(channelId, channel); // store channel to dict
-
-
-            _ = Task.Run(()=> HandleChannelProcessing(channel, channelId));
-
-            
-
-            // catch
-
-            // simple: _= channel.ProccessChannel();
-            // normal : _= HandleChannelProcessing(channel);
+                // simple: _= channel.ProccessChannel();
+                
+                _ = HandleChannelProcessing(channel, channelId);// normal : _= HandleChannelProcessing(channel);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Сработал catch в ManageRequests | {ex.Message}");
+            }
 
         } while (true);
     }
@@ -51,18 +52,19 @@ internal class ClientsManager
     {
         try
         {
-            
             await channel.ProccessChannel();
+
             //ChannelIsCreated += ChannelManager.ProccessChannel;
 
             //channel.ChannelIsCreated();
-
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
 
             // вот тут сделать вызов метода для реконнекта, и уже в нем отменять подписки после какого-то числа безуспешных попыток реконнекта
+
+            //_channelsDict.TryRemove(channelId, out channel);
 
             //await channel.UnsubscribeChannel();
         }

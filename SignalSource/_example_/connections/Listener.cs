@@ -31,9 +31,9 @@ internal class Listener
         return new Listener(listeningSocket);
     }
 
-    public ChannelSender WaitChannelRequest()
+    public async Task<ChannelSender> WaitChannelRequest()
     {
-        var clientSocketAccept = _listeningSocket.Accept();
+        var clientSocketAccept = await _listeningSocket.AcceptAsync();
 
         Console.WriteLine("Получено новое подключение. Сработал метод WaitChannelRequest()");
         

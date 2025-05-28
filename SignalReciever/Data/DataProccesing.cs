@@ -9,7 +9,9 @@ namespace SignalRecieverAnalyzer.DataRecieveAndAnalyzer
     {
         private int _bufferSize = 13;
 
-        double[] result = new double[3];
+        private object _lock = new object();
+
+        //double[] result = new double[3];
 
         private int _currentClientORConnect = 0;
 
@@ -18,32 +20,32 @@ namespace SignalRecieverAnalyzer.DataRecieveAndAnalyzer
             first,
             second
         }
-
-        public async Task<double> RecieveDataAsync(ClientConnection connectionSocket) // вот тут надо вместо Task<string> сделать double[] or List<double>. Сейчас string потому что это первое пришло в голову и не надо писать логику анализатора 
+        // вот тут надо вместо Task<string> сделать double[] or List<double>
+        public async Task<double> RecieveDataAsync(ClientConnection connectionSocket, int connectedId) // надо сделать скользящее окно для буферов, но пока не знаю как
         {
-            byte[] buffer1 = new byte[_bufferSize];
+            var buffer1 = new byte[_bufferSize];
 
-            byte[] buffer2 = new byte[_bufferSize];
+            var buffer2 = new byte[_bufferSize];
 
-            StringBuilder sb = new StringBuilder();
+            double result = -1;
+            double result2 = -1;
 
-            double result = 0;
-
-            int received1 = await connectionSocket._connectionToServerSocket.ReceiveAsync(buffer1, 0); // вот тут надо сделать проверку на второй тип данных
-
-            if (buffer1.Length >=5)
+            var received1 = await connectionSocket._connectionToServerSocket.ReceiveAsync(buffer1, 0);
+            var received2 = await connectionSocket._connectionToServerSocket.ReceiveAsync(buffer2, 0);
+            lock (_lock)
             {
-                result = ProcessBuffer(buffer1, received1);
+                result = ProcessBuffer(buffer1, received1, connectedId);
+
+                result2 = ProcessBuffer(buffer2, received2, connectedId);
+                Console.WriteLine($"Сработал RecieveDataAsync | Вызов ProcessBuffer с параметрами: result {result} | received1 {received1} | connectedId {connectedId}");
             }
-            else
-            {
-                Console.WriteLine("RecieveDataAsync | Фигня какая-то");
-            }
-            
-            return result; // придумать как обойти ошибку с реальным возвратом 0 и стандартным
+
+
+            return result;
+
         }
 
-        private double ProcessBuffer(byte[] buffer, int receivedBytes)
+        private double ProcessBuffer(byte[] buffer, int receivedBytes, int connectedId)
         {
             double receivedDouble = 0;
 
@@ -51,47 +53,62 @@ namespace SignalRecieverAnalyzer.DataRecieveAndAnalyzer
             {
                 receivedDouble = BitConverter.ToDouble(buffer, 5);
 
-                Console.WriteLine($"ProcessBuffer | Получен первый тип данных: {receivedDouble}");
-                
+                Console.WriteLine($"Сработал ProcessBuffer | Клиент {connectedId} получил первый тип данных: {receivedDouble}");
+
             }
             else if (buffer[4] == (byte)DataTypes.second)
             {
-                Console.WriteLine("ProcessBuffer | Получен второй тип данных - пропускаем");
+                Console.WriteLine($"Сработал ProcessBuffer | Клиент {connectedId} получил второй тип данных - пропускаем");
             }
             else
             {
-                Console.WriteLine("ProcessBuffer | Не могу прочитать buffer");
+                Console.WriteLine("Сработал ProcessBuffer | Не могу прочитать buffer");
             }
             return receivedDouble;
         }
 
-        /*public async Task<byte[]> Analyzer(Socket socket1, Socket socket2)
+        // Вот тут находится метод, именно из-за дебага мини сервера-клиента я понял в чем ошибки и как сделать ананлиз
+        // он конечно еще сырой, но я понял очень много, половина вопросов отпала
+
+        private static double Recieve(Socket socket)
         {
-            int shiftId = 0;
-            byte[] resultBytes = new byte[1024];
-            var data1 = await RecieveDoubleAsync(socket1);
-            var data2 = await RecieveDoubleAsync(socket2);
+            byte[] buffer = new byte[13];
 
-            var dataToBytes1 = BitConverter.GetBytes(data1);
-            var dataToBytes2 = BitConverter.GetBytes(data2);
+            double doubleValue = -1;
 
-            if (Math.Abs(data1 - data2) < 0.5)
+            byte type1 = (byte)DataTypes.first;
+
+            byte type2 = (byte)DataTypes.second;
+
+            var receive = socket.Receive(buffer, 0);
+
+            var sizeBytes = new byte[4];
+
+            Buffer.BlockCopy(buffer, 0, sizeBytes, 0, 4);
+
+            var size = BitConverter.ToUInt32(sizeBytes);
+
+            if (size == 13 && buffer[4] == type1)
             {
-                var bytesShiftId = BitConverter.GetBytes(shiftId);
+                doubleValue = BitConverter.ToDouble(buffer, 5);
+                Console.WriteLine($"Сработал метод Receive | Принято {size} байт | Полученное значение {BitConverter.ToDouble(buffer, 5)}");
+            }
+            else
+            {
 
-                for (int i = 0; i < resultBytes.Length; i++)
-                {
-                    resultBytes[i] = dataToBytes1[i];
-                }
+                Console.WriteLine($"Сработал метод Receive | Шум | Размер шума {size} | Передвигаю буфер на позицию {size - 13}");
+
+                int shiftRead = (int)size - 13;
+
+                var buffer1 = new byte[shiftRead];
+
+                receive = socket.Receive(buffer1, 0);
+
+                Recieve(socket);
             }
 
-            else if (Math.Abs(data1 - data2) > 0.5)
-            {
-                shiftId++; // тут понадобится инкремент
-            }
-            return resultBytes;
-        }*/
 
-        
+            return doubleValue;
+        }
     }
 }

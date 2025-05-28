@@ -21,13 +21,13 @@ namespace SignalRecieverAnalyzer.Working
         private readonly CancellationTokenSource _ct = new();
 
 
-        public async Task ConnectingToServerAsync(int maxConnections)
+        public async Task StartConnectingToServer(int maxConnections)
         {
             for (int i = 0; i < maxConnections; i++)
             {
                 var connectedId = Interlocked.Increment(ref _currentConnection);
 
-                Console.WriteLine($"Сработал StartRecieveAsync | Начинаю попытку подключения для {connectedId} клиента");
+                Console.WriteLine($"Сработал StartConnectingToServer | Начинаю попытку подключения для {connectedId} клиента");
 
                 _connectionTasks.TryAdd(connectedId, WorkingWithConnection(connectedId, _ct.Token));
             }
@@ -46,7 +46,7 @@ namespace SignalRecieverAnalyzer.Working
             {
                 while (true)
                 {
-                    var recievedData = await data.RecieveDataAsync(connection);
+                    var recievedData = await data.RecieveDataAsync(connection, connectedId); // к ошибке
                     Console.WriteLine($"Вечный цикл | WorkingWithConnection | Клиент {connectedId} получил данные: {recievedData}");
                 }
             }

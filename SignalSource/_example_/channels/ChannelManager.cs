@@ -14,6 +14,7 @@ internal class ChannelManager
     private readonly ChannelSender _sender;
     private readonly EventsBuilder _eventsBuilder;
     private readonly EventSynchronizator _sync;
+    private object _syncLock = new object();
 
     public ChannelManager(ChannelSender sender, EventsBuilder eventsBuilder, EventSynchronizator sync)
     {
@@ -29,7 +30,7 @@ internal class ChannelManager
         {
             var buildData = _eventsBuilder.BuildTypeOne();
             await _sender.SendTypeOne(buildData);
-            Console.WriteLine("отправлен первый тип");
+            Console.WriteLine("Сработал SendingDataTypeOne | Отправлен первый тип");
         }
         catch (Exception ex)
         {
@@ -43,7 +44,7 @@ internal class ChannelManager
         {
             var buildData = _eventsBuilder.BuildTypeTwo();
             await _sender.SendTypeTwo(buildData);
-            Console.WriteLine("отправлен второй тип");
+            Console.WriteLine("Сработал SendingDataTypeTwo | Отправлен второй тип");
         }
         catch (Exception ex)
         {
@@ -53,15 +54,27 @@ internal class ChannelManager
 
     public async Task ProccessChannel()
     {
-        _sync.TimeToSendTypeOne += async () => await SendingDataTypeOne();
-        _sync.TimeToSendTypeTwo += async () => await SendingDataTypeTwo();
+        var currnentConnect = 1;
+        lock (_syncLock)
+        {
 
-        _sync.StartTimers();
+            _sync.TimeToSendTypeOne += async () => await SendingDataTypeOne();
+            _sync.TimeToSendTypeTwo += async () => await SendingDataTypeTwo();
+
+            _sync.StartTimers();
+
+            Console.WriteLine($"Сработал ProccessChannel, подписка на ивенты | текущее количество подпищеков {currnentConnect}");
+            currnentConnect++;
+        }
     }
 
     public async Task UnsubscribeChannel()
     {
-        _sync.TimeToSendTypeOne -= async () => await SendingDataTypeOne();
-        _sync.TimeToSendTypeTwo -= async () => await SendingDataTypeTwo();
+        lock (_syncLock)
+        {
+            _sync.TimeToSendTypeOne -= async () => await SendingDataTypeOne();
+            _sync.TimeToSendTypeTwo -= async () => await SendingDataTypeTwo();
+            _sync.StopTimers();
+        }
     }
 }

@@ -31,11 +31,13 @@ internal class EventSynchronizator // ?¯\_(ツ)_/¯
     private Timer _timerOne;
     private Timer _timerTwo;
 
+    Random _random = new Random();
+
     public async Task StartTimers()
     {
         _timerOne = new Timer(_=> TimeToSendTypeOne.Invoke(), null, 0,1000);
 
-        _timerTwo = new Timer(_=> TimeToSendTypeTwo.Invoke(), null, 0, 500);
+        _timerTwo = new Timer(_=> TimeToSendTypeTwo.Invoke(), null, 0, _random.Next(400,600));
     }
 
     public void StopTimers()
