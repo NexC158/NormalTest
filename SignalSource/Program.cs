@@ -5,7 +5,7 @@ using System.Net.Sockets;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using SignalSource._example_.channels;
+using SignalSource.channels;
 
 namespace SignalSource
 {

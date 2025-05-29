@@ -44,15 +44,14 @@ namespace SignalRecieverAnalyzer.Working
 
             try
             {
-                while (true)
-                {
+                
                     var recievedData = await data.ProcessDataAsync(connection); // к ошибке
-                    Console.WriteLine($"Вечный цикл | WorkingWithConnection | Клиент {connectedId} получил данные: {recievedData}");
-                }
+                    Console.WriteLine($"неВечный цикл | WorkingWithConnection | Клиент {connectedId} получил данные: {recievedData}");
+                
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ошибка подключения, клиент {connectedId} {ex.Message} ");
+                Console.WriteLine($"Сработал WorkingWithConnection | Ошибка подключения, клиент {connectedId} {ex.Message} ");
 
                 //сюда пихнуть что - то для реконнекта
             }

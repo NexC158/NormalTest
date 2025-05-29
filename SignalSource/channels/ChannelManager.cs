@@ -1,5 +1,5 @@
-﻿using SignalSource._example_.connections;
-using SignalSource._example_.events;
+﻿using SignalSource.connections;
+using SignalSource.events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SignalSource._example_.channels;
+namespace SignalSource.channels;
 
 internal class ChannelManager
 {
@@ -15,7 +15,7 @@ internal class ChannelManager
     private readonly EventsBuilder _eventsBuilder;
     private readonly EventSynchronizator _sync;
     private object _syncLock = new object();
-
+    private int currnentConnect = 0;
     public ChannelManager(ChannelSender sender, EventsBuilder eventsBuilder, EventSynchronizator sync)
     {
         _sender = sender;
@@ -28,8 +28,7 @@ internal class ChannelManager
     {
         try
         {
-            var buildData = _eventsBuilder.BuildTypeOne();
-            await _sender.SendTypeOne(buildData);
+            await _sender.SendTypeOne(_eventsBuilder.BuildTypeOne());
             Console.WriteLine("Сработал SendingDataTypeOne | Отправлен первый тип");
         }
         catch (Exception ex)
@@ -42,8 +41,7 @@ internal class ChannelManager
     {
         try
         {
-            var buildData = _eventsBuilder.BuildTypeTwo();
-            await _sender.SendTypeTwo(buildData);
+            await _sender.SendTypeTwo(_eventsBuilder.BuildTypeTwo());
             Console.WriteLine("Сработал SendingDataTypeTwo | Отправлен второй тип");
         }
         catch (Exception ex)
@@ -54,18 +52,18 @@ internal class ChannelManager
 
     public async Task ProccessChannel()
     {
-        var currnentConnect = 1;
-        lock (_syncLock)
+        while(true)
         {
+            // вот сюда делаю таймер, который ыэзвамтвлд nichego ne soobrajau
+        }
 
             _sync.TimeToSendTypeOne += async () => await SendingDataTypeOne();
             _sync.TimeToSendTypeTwo += async () => await SendingDataTypeTwo();
 
             _sync.StartTimers();
 
-            Console.WriteLine($"Сработал ProccessChannel, подписка на ивенты | текущее количество подпищеков {currnentConnect}");
-            currnentConnect++;
-        }
+            Console.WriteLine($"Сработал ProccessChannel, подписка на ивенты | текущее количество подпищеков {Interlocked.Increment(ref currnentConnect)}");
+        
     }
 
     public async Task UnsubscribeChannel()

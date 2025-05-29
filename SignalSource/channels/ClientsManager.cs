@@ -1,11 +1,10 @@
-﻿using SignalSource._example_.events;
-
-using SignalSource._example_.connections;
+﻿using SignalSource.events;
 
 using System.Collections.Concurrent;
+using SignalSource.connections;
 
 
-namespace SignalSource._example_.channels;
+namespace SignalSource.channels;
 
 delegate Task ChannelEventHandler();
 
@@ -18,7 +17,7 @@ internal class ClientsManager
     public async Task ManageRequests()
     {
         var sync = new EventSynchronizator(); // var sync = new EventSynchronizator();
-        
+
         var eventsBuilder = new EventsBuilder();
 
         var listener = Listener.StartListening(10000); // listener = StartListening()
@@ -27,17 +26,13 @@ internal class ClientsManager
             try
             {
                 var sender = await listener.WaitChannelRequest(); // sender = listener.StartListening()
-
-                // var eventsBuilder = new EventsBuilder()
-
+                                                                  // var eventsBuilder = new EventsBuilder()
                 var channel = new ChannelManager(sender, eventsBuilder, sync); // channel = new (sender, sync, eventsBuilder)
-
+                
                 var channelId = Interlocked.Increment(ref _currentChannel);
 
                 _channelsDict.TryAdd(channelId, channel); // store channel to dict
-
-                // simple: _= channel.ProccessChannel();
-                
+                                                             // simple: _= channel.ProccessChannel();
                 _ = HandleChannelProcessing(channel, channelId);// normal : _= HandleChannelProcessing(channel);
             }
             catch (Exception ex)
@@ -54,7 +49,7 @@ internal class ClientsManager
         {
             await channel.ProccessChannel();
 
-            //ChannelIsCreated += ChannelManager.ProccessChannel;
+            
 
             //channel.ChannelIsCreated();
         }

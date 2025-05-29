@@ -5,9 +5,9 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-using SignalSource._example_.channels;
+using SignalSource.channels;
 
-namespace SignalSource._example_.connections;
+namespace SignalSource.connections;
 
 internal class Listener
 {
@@ -18,7 +18,7 @@ internal class Listener
         _listeningSocket = listeningSocket;
     }
 
-    public static Listener StartListening(int port) 
+    public static Listener StartListening(int port)
     {
         var listeningSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
@@ -36,7 +36,7 @@ internal class Listener
         var clientSocketAccept = await _listeningSocket.AcceptAsync();
 
         Console.WriteLine("Получено новое подключение. Сработал метод WaitChannelRequest()");
-        
+
         return new ChannelSender(clientSocketAccept);
     }
 

@@ -9,5 +9,7 @@ namespace SignalRecieverAnalyzer.Data
     internal class DataAnalyze
     {
         // сдеся хочу вызывать ProcessDataAsync и создавать тройки
+
+
     }
 }
