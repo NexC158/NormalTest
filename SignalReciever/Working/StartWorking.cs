@@ -36,7 +36,7 @@ namespace SignalRecieverAnalyzer.Working
 
         private async Task WorkingWithConnection(int connectedId, CancellationToken ct)
         {
-            var data = new DataProccesing();
+            var data = new DataProcces();
 
             var connection = await ClientConnection.ConnectionToServerAsync("127.0.0.1", 10000);
 
@@ -46,7 +46,7 @@ namespace SignalRecieverAnalyzer.Working
             {
                 while (true)
                 {
-                    var recievedData = await data.RecieveDataAsync(connection, connectedId); // к ошибке
+                    var recievedData = await data.ProcessDataAsync(connection); // к ошибке
                     Console.WriteLine($"Вечный цикл | WorkingWithConnection | Клиент {connectedId} получил данные: {recievedData}");
                 }
             }
@@ -57,11 +57,7 @@ namespace SignalRecieverAnalyzer.Working
                 //сюда пихнуть что - то для реконнекта
             }
 
-            //if (!ct.IsCancellationRequested)
-            //{
-            //    await Task.Delay(1000, ct); // или сюда пихнуть что-то для реконнекта
-            //    Console.WriteLine("Сработал CancellationTocken");
-            //}
+
         }
     }
 }
