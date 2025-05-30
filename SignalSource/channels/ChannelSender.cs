@@ -9,7 +9,7 @@ namespace SignalSource.channels
 {
     internal class ChannelSender
     {
-        private Socket _clientSocket;
+        private readonly Socket _clientSocket;
 
         public ChannelSender(Socket clientSocket)
         {

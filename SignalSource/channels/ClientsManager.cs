@@ -25,11 +25,13 @@ internal class ClientsManager
         {
             try
             {
-                var sender = await listener.WaitChannelRequest(); // sender = listener.StartListening()
+                var channelId = Interlocked.Increment(ref _currentChannel);
+
+                var sender = await listener.WaitChannelRequest(channelId); // sender = listener.StartListening()
                                                                   // var eventsBuilder = new EventsBuilder()
                 var channel = new ChannelManager(sender, eventsBuilder, sync); // channel = new (sender, sync, eventsBuilder)
                 
-                var channelId = Interlocked.Increment(ref _currentChannel);
+                
 
                 _channelsDict.TryAdd(channelId, channel); // store channel to dict
                                                              // simple: _= channel.ProccessChannel();
@@ -47,7 +49,7 @@ internal class ClientsManager
     {
         try
         {
-            await channel.ProccessChannel();
+            await channel.ProccessChannel(channelId);
 
             
 

@@ -44,9 +44,12 @@ namespace SignalRecieverAnalyzer.Working
 
             try
             {
-                
+                while (true)
+                {
                     var recievedData = await data.ProcessDataAsync(connection); // к ошибке
                     Console.WriteLine($"неВечный цикл | WorkingWithConnection | Клиент {connectedId} получил данные: {recievedData}");
+                }
+                    
                 
             }
             catch (Exception ex)
@@ -55,7 +58,6 @@ namespace SignalRecieverAnalyzer.Working
 
                 //сюда пихнуть что - то для реконнекта
             }
-
 
         }
     }

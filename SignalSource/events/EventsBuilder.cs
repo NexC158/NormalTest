@@ -6,7 +6,6 @@ namespace SignalSource.events;
 
 internal class EventsBuilder
 {
-    public object locker = new object();
 
     private Random _random = new Random();
 
@@ -39,8 +38,6 @@ internal class EventsBuilder
     }
     private byte[] FormingData(DataTypes dataType, byte[] dataToSend)
     {
-        lock (locker)
-        {
             var typeByte = new byte[] { (byte)dataType };
 
             int size2 = sizeof(uint) + typeByte.Length + dataToSend.Length;
@@ -56,8 +53,6 @@ internal class EventsBuilder
             Buffer.BlockCopy(dataToSend, 0, formingBytesArray, size2Bytes.Length + typeByte.Length, dataToSend.Length);
 
             return formingBytesArray;
-        }
-        
     }
 }
 
@@ -76,7 +71,7 @@ internal class EventSynchronizator // ?¯\_(ツ)_/¯
     {
         _timerOne = new Timer(_ => TimeToSendTypeOne.Invoke(), null, 0, 1000);
 
-        _timerTwo = new Timer(_ => TimeToSendTypeTwo.Invoke(), null, 0, _random.Next(400, 600));
+        _timerTwo = new Timer(_ => TimeToSendTypeTwo.Invoke(), null, 0, _random.Next(400, 600)); // он не должен запускаться сразу как создастся клиент, этот таймер "глобальный"
     }
 
     public void StopTimers()

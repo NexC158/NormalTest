@@ -17,7 +17,7 @@ namespace SignalRecieverAnalyzer.DataRecieveAndAnalyzer
             second
         }
         
-        public async Task<double> ProcessDataAsync(ClientConnection connectionSocket)
+        public async Task<double> ProcessDataAsync(ClientConnection connectionSocket) // работает для не large объектов. Думаю обработку надо будет делать чанками как в майнкрафте
         {
             byte[] buffer = new byte[_bufferSize];
 

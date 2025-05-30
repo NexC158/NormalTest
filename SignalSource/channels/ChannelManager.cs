@@ -50,29 +50,28 @@ internal class ChannelManager
         }
     }
 
-    public async Task ProccessChannel()
+    public async Task ProccessChannel(int channelId)
     {
-        while(true)
-        {
-            // вот сюда делаю таймер, который ыэзвамтвлд nichego ne soobrajau
-        }
+        _sync.TimeToSendTypeOne += async () => await SendingDataTypeOne();
 
-            _sync.TimeToSendTypeOne += async () => await SendingDataTypeOne();
-            _sync.TimeToSendTypeTwo += async () => await SendingDataTypeTwo();
+        _sync.TimeToSendTypeTwo += async () => await SendingDataTypeTwo();
 
-            _sync.StartTimers();
+        _sync.StartTimers();
 
-            Console.WriteLine($"Сработал ProccessChannel, подписка на ивенты | текущее количество подпищеков {Interlocked.Increment(ref currnentConnect)}");
-        
+
+        Console.WriteLine($"Сработал ProccessChannel, подписка на ивенты | текущее количество подпищеков {channelId}");
+
+
+
     }
 
-    public async Task UnsubscribeChannel()
-    {
-        lock (_syncLock)
-        {
-            _sync.TimeToSendTypeOne -= async () => await SendingDataTypeOne();
-            _sync.TimeToSendTypeTwo -= async () => await SendingDataTypeTwo();
-            _sync.StopTimers();
-        }
-    }
+    //public async Task UnsubscribeChannel()
+    //{
+    //    lock (_syncLock)
+    //    {
+    //        _sync.TimeToSendTypeOne -= async () => await SendingDataTypeOne();
+    //        _sync.TimeToSendTypeTwo -= async () => await SendingDataTypeTwo();
+    //        _sync.StopTimers();
+    //    }
+    //}
 }
