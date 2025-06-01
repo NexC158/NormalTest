@@ -12,10 +12,15 @@ namespace SignalSource.channels;
 internal class ChannelManager
 {
     private readonly ChannelSender _sender;
+
     private readonly EventsBuilder _eventsBuilder;
+
     private readonly EventSynchronizator _sync;
-    private object _syncLock = new object();
+
+
     private int currnentConnect = 0;
+
+    private readonly Random _random;
     public ChannelManager(ChannelSender sender, EventsBuilder eventsBuilder, EventSynchronizator sync)
     {
         _sender = sender;
@@ -24,54 +29,35 @@ internal class ChannelManager
 
     }
 
-    private async Task SendingDataTypeOne()
+    public async Task ProccessChannel(ChannelManager channel, int channelId)
     {
-        try
+        // Вот тут я должен сделать таймеры и через них инвокать события. А события должны запускать методы из класса ChannelSender 
+
+        var globalTimerForType1 = new System.Timers.Timer(1000);
+
+        var personalTimerForType2 = new System.Timers.Timer(500);
+
+        globalTimerForType1.Elapsed += (s, e) =>
         {
-            await _sender.SendTypeOne(_eventsBuilder.BuildTypeOne());
-            Console.WriteLine("Сработал SendingDataTypeOne | Отправлен первый тип");
-        }
-        catch (Exception ex)
+            channel._sync.OnGlobalTimerType1(s, e);
+        };
+
+        personalTimerForType2.Elapsed += (s, e) =>
         {
-            Console.WriteLine(ex.Message);
-        }
+            channel._sync.OnPersonalTimerType2(s, e);
+        };
+
+        channel._sync.GlobalTimerType1 += (s, e) =>
+        {
+            channel._sender.SendTypeOne();
+        };
+
+        channel._sync.GlobalTimerType1 -= (s, e) =>
+        {
+            channel._sender.SendTypeTwo();
+        };
+
+        globalTimerForType1.Start();
+        personalTimerForType2.Start();
     }
-
-    private async Task SendingDataTypeTwo()
-    {
-        try
-        {
-            await _sender.SendTypeTwo(_eventsBuilder.BuildTypeTwo());
-            Console.WriteLine("Сработал SendingDataTypeTwo | Отправлен второй тип");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.Message);
-        }
-    }
-
-    public async Task ProccessChannel(int channelId)
-    {
-        _sync.TimeToSendTypeOne += async () => await SendingDataTypeOne();
-
-        _sync.TimeToSendTypeTwo += async () => await SendingDataTypeTwo();
-
-        _sync.StartTimers();
-
-
-        Console.WriteLine($"Сработал ProccessChannel, подписка на ивенты | текущее количество подпищеков {channelId}");
-
-
-
-    }
-
-    //public async Task UnsubscribeChannel()
-    //{
-    //    lock (_syncLock)
-    //    {
-    //        _sync.TimeToSendTypeOne -= async () => await SendingDataTypeOne();
-    //        _sync.TimeToSendTypeTwo -= async () => await SendingDataTypeTwo();
-    //        _sync.StopTimers();
-    //    }
-    //}
 }

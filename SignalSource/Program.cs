@@ -13,24 +13,11 @@ namespace SignalSource
     { 
         public static async Task Main(string[] args)
         {
-            /*var connect = new ConnectionManage();
-            var data = new DataGeneration();
-            var sync = new StartListenersAsync();
-            
-            await connect.StartTransferDataAsync();*/
-
             var manager = new ClientsManager();
 
              await manager.ManageRequests();
             
 
-           /*1) обертка сокета, спросить еще раз, не понял
-             2) из него надо делать оберку или че как почему он должен быть приватным ClientsConnectionSocket?
-             3) сделать channelSender - прокси - это будет обертка для сокета, спросить что имеется ввиду, и куда его надо засунуть
-             4) как доставать каналы из ConnectionManager?
-             5) 
-
-                сделал генерацию данных, спросить пральна или нет*/
         }
     }
 }

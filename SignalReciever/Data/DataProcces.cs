@@ -7,7 +7,7 @@ namespace SignalRecieverAnalyzer.DataRecieveAndAnalyzer
 {
     internal class DataProcces
     {
-        private static int _bufferSize = 13;
+        private static uint _bufferSize = 13;
 
         private static int _size = 4;
 
@@ -17,7 +17,7 @@ namespace SignalRecieverAnalyzer.DataRecieveAndAnalyzer
             second
         }
         
-        public async Task<double> ProcessDataAsync(ClientConnection connectionSocket) // работает для не large объектов. Думаю обработку надо будет делать чанками как в майнкрафте
+        public async Task<double> ProcessDataAsync(ClientConnection connectionSocket, int currentId) // работает для не large объектов. Думаю обработку надо будет делать чанками как в майнкрафте
         {
             byte[] buffer = new byte[_bufferSize];
 
@@ -25,10 +25,10 @@ namespace SignalRecieverAnalyzer.DataRecieveAndAnalyzer
 
             try
             {
-                received = connectionSocket._connectionToServerSocket.Receive(buffer, 0);
+                received = await connectionSocket._connectionToServerSocket.ReceiveAsync(buffer, 0);
                 if (received == 0)
                 {
-                    Console.WriteLine($"Сработал метод ProcessDataAsync | Ошибка приема {received} переданных байт");
+                    Console.WriteLine($"Сработал метод ProcessDataAsync | Клиент {currentId} | Ошибка приема {received} переданных байт");
 
                     throw new SocketException(10054);
                 }
@@ -54,32 +54,32 @@ namespace SignalRecieverAnalyzer.DataRecieveAndAnalyzer
             {
                 doubleValue = BitConverter.ToDouble(buffer, 5);
 
-                Console.WriteLine($"Сработал метод ProcessDataAsync | Принято {size} байт | Полученное значение {BitConverter.ToDouble(buffer, 5)}");
+                //Console.WriteLine($"Сработал метод ProcessDataAsync | Клиент {currentId} | Принято {size} байт | Полученное значение {BitConverter.ToDouble(buffer, 5)}");
             }
             else if (size < 13)
             {
-                Console.WriteLine($"Сработал метод ProcessDataAsync | Шум | Размер шума {size} ");
+                Console.WriteLine($"Сработал метод ProcessDataAsync | Шум Клиент {currentId} | Размер шума {size} ");
 
-                await ProcessDataAsync(connectionSocket);
+                await ProcessDataAsync(connectionSocket, currentId);
             }
             else
             {
-                Console.WriteLine($"Сработал метод ProcessDataAsync | Шум | Размер шума {size} | Делаю буфер длиной {size - buffer.Length}");
+                Console.WriteLine($"Сработал метод ProcessDataAsync | Шум Шум Клиент {currentId} | Размер шума {size} | Делаю буфер длиной {size - buffer.Length}");
 
                 var buffer1 = new byte[size - buffer.Length];
 
-                received = connectionSocket._connectionToServerSocket.Receive(buffer1, 0);
+                received = await connectionSocket._connectionToServerSocket.ReceiveAsync(buffer1, 0);
 
                 if (buffer[4] == type2)
                 {
-                    Console.WriteLine("Сработал метод ProcessDataAsync | Все четко продолжаем");
+                    Console.WriteLine($"Сработал метод ProcessDataAsync | Шум | Клиент {currentId} | Все четко продолжаем");
                 }
                 else
                 {
-                    Console.WriteLine("Сработал метод ProcessDataAsync | Что-то тут нечисто");
+                    Console.WriteLine($"Сработал метод ProcessDataAsync | Шум | Клиент {currentId} | Что-то тут нечисто");
                 }
 
-                await ProcessDataAsync(connectionSocket);
+                await ProcessDataAsync(connectionSocket, currentId);
             }
 
             return doubleValue;

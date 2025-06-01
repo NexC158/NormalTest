@@ -6,8 +6,6 @@ using SignalSource.connections;
 
 namespace SignalSource.channels;
 
-delegate Task ChannelEventHandler();
-
 internal class ClientsManager
 {
     private int _currentChannel = 0;
@@ -16,26 +14,29 @@ internal class ClientsManager
 
     public async Task ManageRequests()
     {
-        var sync = new EventSynchronizator(); // var sync = new EventSynchronizator();
+        var sync = new EventSynchronizator();
 
         var eventsBuilder = new EventsBuilder();
 
-        var listener = Listener.StartListening(10000); // listener = StartListening()
+        var listener = Listener.StartListening(10000);
         do
         {
             try
             {
+                
+
                 var channelId = Interlocked.Increment(ref _currentChannel);
 
-                var sender = await listener.WaitChannelRequest(channelId); // sender = listener.StartListening()
-                                                                  // var eventsBuilder = new EventsBuilder()
-                var channel = new ChannelManager(sender, eventsBuilder, sync); // channel = new (sender, sync, eventsBuilder)
-                
-                
+                var sender = await listener.WaitChannelRequest(channelId);
 
-                _channelsDict.TryAdd(channelId, channel); // store channel to dict
-                                                             // simple: _= channel.ProccessChannel();
-                _ = HandleChannelProcessing(channel, channelId);// normal : _= HandleChannelProcessing(channel);
+                var channel = new ChannelManager(sender, eventsBuilder, sync);
+
+                _channelsDict.TryAdd(channelId, channel);
+
+
+                //globalTimer.GlobalTimerType2 += (s, e) => GlobalTimerElapsed(channel, e);
+
+                _ = HandleChannelProcessing(channel, channelId);
             }
             catch (Exception ex)
             {
@@ -49,9 +50,9 @@ internal class ClientsManager
     {
         try
         {
-            await channel.ProccessChannel(channelId);
+            await channel.ProccessChannel(channel, channelId);
 
-            
+
 
             //channel.ChannelIsCreated();
         }
@@ -73,3 +74,4 @@ internal class ClientsManager
         //}
     }
 }
+

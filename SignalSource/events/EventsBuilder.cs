@@ -1,5 +1,8 @@
-﻿using System.Threading;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+﻿using System;
+using System.Net.Sockets;
+using System.Timers;
+using Timer = System.Timers.Timer;
+
 
 namespace SignalSource.events;
 
@@ -38,49 +41,40 @@ internal class EventsBuilder
     }
     private byte[] FormingData(DataTypes dataType, byte[] dataToSend)
     {
-            var typeByte = new byte[] { (byte)dataType };
+        var typeByte = new byte[] { (byte)dataType };
 
-            int size2 = sizeof(uint) + typeByte.Length + dataToSend.Length;
+        int size2 = sizeof(uint) + typeByte.Length + dataToSend.Length;
 
-            var size2Bytes = BitConverter.GetBytes(size2);
+        var size2Bytes = BitConverter.GetBytes(size2);
 
-            var formingBytesArray = new byte[size2];
+        var formingBytesArray = new byte[size2];
 
-            Buffer.BlockCopy(size2Bytes, 0, formingBytesArray, 0, size2Bytes.Length); // мб использовать MemoryStream
+        Buffer.BlockCopy(size2Bytes, 0, formingBytesArray, 0, size2Bytes.Length); // мб использовать MemoryStream
 
-            Buffer.BlockCopy(typeByte, 0, formingBytesArray, size2Bytes.Length, typeByte.Length);
+        Buffer.BlockCopy(typeByte, 0, formingBytesArray, size2Bytes.Length, typeByte.Length);
 
-            Buffer.BlockCopy(dataToSend, 0, formingBytesArray, size2Bytes.Length + typeByte.Length, dataToSend.Length);
+        Buffer.BlockCopy(dataToSend, 0, formingBytesArray, size2Bytes.Length + typeByte.Length, dataToSend.Length);
 
-            return formingBytesArray;
+        return formingBytesArray;
     }
 }
 
 
-internal class EventSynchronizator // ?¯\_(ツ)_/¯
+internal class EventSynchronizator // ?¯\_(ツ)_/¯ это класс издатель, он определяет когда событие должно выполняться 
 {
-    public event Action TimeToSendTypeOne;
-    public event Action TimeToSendTypeTwo;
+    public event EventHandler GlobalTimerType1; // для каждого активного канала раз в секунду
 
-    private Timer _timerOne;
-    private Timer _timerTwo;
+    public event EventHandler PersonalTimerType2; // в каждом канале независимо
 
-    Random _random = new Random();
+    private static Random _random = new Random();
 
-    public void StartTimers()
+    public void OnGlobalTimerType1(object sender, EventArgs e) // вот тут sender это отправитель события, и я думаю что это таймер
     {
-        _timerOne = new Timer(_ => TimeToSendTypeOne.Invoke(), null, 0, 1000);
-
-        _timerTwo = new Timer(_ => TimeToSendTypeTwo.Invoke(), null, 0, _random.Next(400, 600)); // он не должен запускаться сразу как создастся клиент, этот таймер "глобальный"
+        GlobalTimerType1?.Invoke(sender, e);
     }
 
-    public void StopTimers()
+    public void OnPersonalTimerType2(object sender, EventArgs e)
     {
-        _timerOne.Dispose();
-        _timerTwo.Dispose();
+        PersonalTimerType2?.Invoke(sender, e);
     }
 }
-
-
-
-// короче тут слежу чтобы отправлялось раз в секунду и два раза в секунду

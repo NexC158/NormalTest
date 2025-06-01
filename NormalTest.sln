@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.11.35219.272
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SignalRecieverAnalyzer", "SignalReciever\SignalRecieverAnalyzer.csproj", "{9ACCFA8A-76D7-40D5-BC2D-4D91B276B088}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DEB58C18-42C8-4153-B4AE-8B476B2056AE} = {DEB58C18-42C8-4153-B4AE-8B476B2056AE}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SignalSource", "SignalSource\SignalSource.csproj", "{DEB58C18-42C8-4153-B4AE-8B476B2056AE}"
 EndProject

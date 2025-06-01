@@ -23,15 +23,23 @@ namespace SignalRecieverAnalyzer.Working
 
         public async Task StartConnectingToServer(int maxConnections)
         {
-            for (int i = 0; i < maxConnections; i++)
+            try
             {
-                var connectedId = Interlocked.Increment(ref _currentConnection);
+                for (int i = 0; i < maxConnections; i++)
+                {
+                    var connectedId = Interlocked.Increment(ref _currentConnection);
 
-                Console.WriteLine($"Сработал StartConnectingToServer | Начинаю попытку подключения для {connectedId} клиента");
+                    Console.WriteLine($"Сработал StartConnectingToServer | Начинаю попытку подключения для {connectedId} клиента");
 
-                _connectionTasks.TryAdd(connectedId, WorkingWithConnection(connectedId, _ct.Token));
+                    _connectionTasks.TryAdd(connectedId, WorkingWithConnection(connectedId, _ct.Token));
+                }
+                await Task.WhenAll(_connectionTasks.Values);
             }
-            await Task.WhenAll(_connectionTasks.Values);
+            catch (Exception ex)
+            {
+                Console.WriteLine($"StartConnectingToServer | {ex.Message}");
+            }
+            
         }
 
         private async Task WorkingWithConnection(int connectedId, CancellationToken ct)
@@ -46,7 +54,7 @@ namespace SignalRecieverAnalyzer.Working
             {
                 while (true)
                 {
-                    var recievedData = await data.ProcessDataAsync(connection); // к ошибке
+                    var recievedData = await data.ProcessDataAsync(connection, connectedId);
                     Console.WriteLine($"неВечный цикл | WorkingWithConnection | Клиент {connectedId} получил данные: {recievedData}");
                 }
                     
@@ -55,10 +63,17 @@ namespace SignalRecieverAnalyzer.Working
             catch (Exception ex)
             {
                 Console.WriteLine($"Сработал WorkingWithConnection | Ошибка подключения, клиент {connectedId} {ex.Message} ");
+                Console.WriteLine("Пробую реконнектится");
 
-                //сюда пихнуть что - то для реконнекта
+                await Reconnect(connection);
+                
             }
 
+        }
+
+        public async Task Reconnect(ClientConnection connection)
+        {
+            connection = await ClientConnection.ConnectionToServerAsync("127.0.0.1", 10000);
         }
     }
 }
