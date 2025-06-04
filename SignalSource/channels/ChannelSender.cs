@@ -33,5 +33,10 @@ internal class ChannelSender
         Console.WriteLine($"Отправлен второй тип | {BitConverter.ToUInt32(dataToSend, 0)}");
         await _clientSocket.SendAsync(dataToSend);
     }
+
+    internal bool IsConnectd()
+    {
+        throw new NotImplementedException();
+    }
 }
 

@@ -15,13 +15,13 @@ internal class ChannelManager
 
     private readonly EventsBuilder _eventsBuilder;
 
-    private readonly EventSynchronizator _sync;
+    private readonly EventSynchronizer _sync;
 
 
     private int currnentConnect = 0;
 
     private readonly Random _random;
-    public ChannelManager(ChannelSender sender, EventsBuilder eventsBuilder, EventSynchronizator sync)
+    public ChannelManager(ChannelSender sender, EventsBuilder eventsBuilder, EventSynchronizer sync)
     {
         _sender = sender;
         _eventsBuilder = eventsBuilder;
@@ -29,11 +29,31 @@ internal class ChannelManager
 
     }
 
+    public async Task ProccessChannel2( int channelId)
+    {
+        EventHandler handler1 = async (s, e) =>
+        {
+            _ = this._sender.SendTypeOne();
+        };
+
+        this._sync.GlobalTimerType1 += handler1;
+
+        while (_sender.IsConnectd())
+        {
+            int timeForNextEvetn2 = _random.Next(1, 1000);
+            await Task.Delay(timeForNextEvetn2);
+            await this._sender.SendTypeTwo();
+        }
+
+        this._sync.GlobalTimerType1 -= handler1;
+    }
+
+#if false
     public async Task ProccessChannel(ChannelManager channel, int channelId)
     {
         // Вот тут я должен сделать таймеры и через них инвокать события. А события должны запускать методы из класса ChannelSender 
 
-        var globalTimerForType1 = new System.Timers.Timer(1000);
+        
 
         var personalTimerForType2 = new System.Timers.Timer(500);
 
@@ -47,17 +67,30 @@ internal class ChannelManager
             channel._sync.OnPersonalTimerType2(s, e);
         };
 
-        channel._sync.GlobalTimerType1 += (s, e) =>
+        EventHandler handler1 = async (s, e) =>
         {
-            channel._sender.SendTypeOne();
+            _ = channel._sender.SendTypeOne();
         };
 
-        channel._sync.GlobalTimerType1 -= (s, e) =>
+        channel._sync.GlobalTimerType1 += handler1;
+
+        EventHandler handler2 = (s, e) =>
         {
-            channel._sender.SendTypeTwo();
+            _ = channel._sender.SendTypeTwo();
         };
 
-        globalTimerForType1.Start();
+        channel._sync.PersonalTimerType2 += handler2;
+
+
+        // wait disconnets
+
+        // finally:
+        //  -= handler1
+        // -= handler2
+
+        // globalTimerForType1.Start();
+
         personalTimerForType2.Start();
     }
+#endif
 }

@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Timers;
 using Timer = System.Timers.Timer;
 
@@ -60,21 +62,71 @@ internal class EventsBuilder
 }
 
 
-internal class EventSynchronizator // ?¯\_(ツ)_/¯ это класс издатель, он определяет когда событие должно выполняться 
+internal class EventSynchronizer : IDisposable // ?¯\_(ツ)_/¯ это класс издатель, он определяет когда событие должно выполняться 
 {
-    public event EventHandler GlobalTimerType1; // для каждого активного канала раз в секунду
+    public event EventHandler? GlobalTimerType1; // для каждого активного канала раз в секунду
 
-    public event EventHandler PersonalTimerType2; // в каждом канале независимо
+    private readonly Random _random = new Random();
 
-    private static Random _random = new Random();
+    private CancellationTokenSource? _cts = null;
 
-    public void OnGlobalTimerType1(object sender, EventArgs e) // вот тут sender это отправитель события, и я думаю что это таймер
+    public EventSynchronizer()
     {
-        GlobalTimerType1?.Invoke(sender, e);
+        _cts = null;
     }
 
-    public void OnPersonalTimerType2(object sender, EventArgs e)
+    public void Dispose()
     {
-        PersonalTimerType2?.Invoke(sender, e);
+        StopInternal();
     }
+
+    public void Stop()
+    {
+        StopInternal();
+    }
+
+    private void StopInternal()
+    {
+        var cts = Interlocked.Exchange(ref _cts, null);
+        cts?.Cancel();
+    }
+
+    public void StartIfNotYet()
+    {
+        // fast check
+        if(_cts is not null)
+        {
+            return;
+        }
+
+        // long check
+        var newCts = new CancellationTokenSource();
+        if ( null == Interlocked.CompareExchange(ref _cts, newCts, null))
+        {
+            _ = Processing(newCts.Token);
+        }
+    }
+
+    public void StartAndStopPrev()
+    {
+        var newCts = new CancellationTokenSource();
+        var oldCts = Interlocked.Exchange(ref _cts, newCts);
+        if (oldCts is not null)
+        {
+            oldCts.Cancel();
+        }
+
+        _ = Processing(newCts.Token);
+    }
+
+
+    private async Task Processing(CancellationToken stop)
+    {
+        while (stop.IsCancellationRequested is false)
+        {
+            await Task.Delay(1000);
+            GlobalTimerType1?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
 }

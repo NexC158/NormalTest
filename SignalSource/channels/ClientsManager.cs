@@ -14,7 +14,7 @@ internal class ClientsManager
 
     public async Task ManageRequests()
     {
-        var sync = new EventSynchronizator();
+        using var sync = new EventSynchronizer();
 
         var eventsBuilder = new EventsBuilder();
 
@@ -23,11 +23,11 @@ internal class ClientsManager
         {
             try
             {
-                
-
                 var channelId = Interlocked.Increment(ref _currentChannel);
 
                 var sender = await listener.WaitChannelRequest(channelId);
+
+                sync.StartIfNotYet();
 
                 var channel = new ChannelManager(sender, eventsBuilder, sync);
 
@@ -50,7 +50,7 @@ internal class ClientsManager
     {
         try
         {
-            await channel.ProccessChannel(channel, channelId);
+            await channel.ProccessChannel2( channelId);
 
 
 
