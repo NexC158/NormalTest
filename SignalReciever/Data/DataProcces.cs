@@ -16,7 +16,7 @@ namespace SignalRecieverAnalyzer.DataRecieveAndAnalyzer
             first,
             second
         }
-        
+
         public async Task<double> ProcessDataAsync(ClientConnection connectionSocket, int currentId) // работает для не large объектов. Думаю обработку надо будет делать чанками как в майнкрафте
         {
             byte[] buffer = new byte[_bufferSize];
@@ -44,11 +44,13 @@ namespace SignalRecieverAnalyzer.DataRecieveAndAnalyzer
 
             byte type2 = (byte)DataTypes.second;
 
-            var sizeBytes = new byte[_size];
+            // old:
+            // var sizeBytes = new byte[_size];
+            // Buffer.BlockCopy(buffer, 0, sizeBytes, 0, _size);
+            // new:
+            ;
 
-            Buffer.BlockCopy(buffer, 0, sizeBytes, 0, _size);
-
-            var size = BitConverter.ToUInt32(sizeBytes);
+            var size = BitConverter.ToUInt32(buffer.AsSpan(0, _size));
 
             if (size == 13 && buffer[4] == type1)
             {
@@ -62,11 +64,11 @@ namespace SignalRecieverAnalyzer.DataRecieveAndAnalyzer
 
                 await ProcessDataAsync(connectionSocket, currentId);
             }
-            else
+            else if (size >= _bufferSize)
             {
                 Console.WriteLine($"Сработал метод ProcessDataAsync | Шум Шум Клиент {currentId} | Размер шума {size} | Делаю буфер длиной {size - buffer.Length}");
 
-                var buffer1 = new byte[size - buffer.Length];
+                var buffer1 = new byte[size - _bufferSize];
 
                 received = await connectionSocket._connectionToServerSocket.ReceiveAsync(buffer1, 0);
 
