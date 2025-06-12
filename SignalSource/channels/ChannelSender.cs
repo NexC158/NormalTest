@@ -12,31 +12,29 @@ internal class ChannelSender
 {
     private readonly Socket _clientSocket;
 
-    
-    private EventsBuilder _eventsBuilder;
     public ChannelSender(Socket clientSocket)
     {
         _clientSocket = clientSocket;
-        _eventsBuilder = new EventsBuilder();
     }
 
-    public async Task SendTypeOne()
+    public async Task SendTypeOne(byte[] dataToSendType1)
     {
-        var dataToSend = _eventsBuilder.BuildTypeOne();
-        Console.WriteLine($"Отправлен первый тип | {BitConverter.ToDouble(dataToSend, 5)}");
-        await _clientSocket.SendAsync(dataToSend);
+        Console.WriteLine($"Отправлен первый тип | Значение {BitConverter.ToDouble(dataToSendType1, 5)}");
+        
+        await _clientSocket.SendAsync(dataToSendType1);
     }
 
-    public async Task SendTypeTwo()
+    public async Task SendTypeTwo(byte[] dataToSendType2)
     {
-        var dataToSend = _eventsBuilder.BuildTypeTwo();
-        Console.WriteLine($"Отправлен второй тип | {BitConverter.ToUInt32(dataToSend, 0)}");
-        await _clientSocket.SendAsync(dataToSend);
+        Console.WriteLine($"Отправлен второй тип | Размер {BitConverter.ToUInt32(dataToSendType2, 0)}");
+
+        await _clientSocket.SendAsync(dataToSendType2);
     }
 
-    internal bool IsConnectd()
+    internal bool IsConnected()
     {
-        throw new NotImplementedException();
+        if (_clientSocket.Connected) return true;
+        return false;
     }
 }
 

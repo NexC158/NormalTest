@@ -34,8 +34,6 @@ internal class ClientsManager
                 _channelsDict.TryAdd(channelId, channel);
 
 
-                //globalTimer.GlobalTimerType2 += (s, e) => GlobalTimerElapsed(channel, e);
-
                 _ = HandleChannelProcessing(channel, channelId);
             }
             catch (Exception ex)
@@ -50,17 +48,14 @@ internal class ClientsManager
     {
         try
         {
-            await channel.ProccessChannel2( channelId);
+            await channel.ProccessChannel2(channelId);
 
-
-
-            //channel.ChannelIsCreated();
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.Message);
+            Console.WriteLine($"Сработал catch в HandleChannelProcessing | {ex.Message}");
 
-            // вот тут сделать вызов метода для реконнекта, и уже в нем отменять подписки после какого-то числа безуспешных попыток реконнекта
+            // вот тут сделать ожидание для реконнекта, и уже в нем отменять подписки после какого-то числа безуспешных попыток реконнекта
 
             //_channelsDict.TryRemove(channelId, out channel);
 

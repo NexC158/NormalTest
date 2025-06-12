@@ -11,8 +11,7 @@ namespace SignalSource.events;
 
 internal class EventsBuilder
 {
-
-    private Random _random = new Random();
+    private readonly Random _random = new Random();
 
     enum DataTypes : byte // byte??int
     {
@@ -39,17 +38,18 @@ internal class EventsBuilder
 
         var dataToSend = FormingData(DataTypes.second, secondTypeData);
 
-        return secondTypeData;
+        return dataToSend;
     }
+
     private byte[] FormingData(DataTypes dataType, byte[] dataToSend)
     {
         var typeByte = new byte[] { (byte)dataType };
 
-        int size2 = sizeof(uint) + typeByte.Length + dataToSend.Length;
+        int size = sizeof(uint) + typeByte.Length + dataToSend.Length;
 
-        var size2Bytes = BitConverter.GetBytes(size2);
+        var size2Bytes = BitConverter.GetBytes(size);
 
-        var formingBytesArray = new byte[size2];
+        var formingBytesArray = new byte[size];
 
         Buffer.BlockCopy(size2Bytes, 0, formingBytesArray, 0, size2Bytes.Length); // мб использовать MemoryStream
 
@@ -62,9 +62,9 @@ internal class EventsBuilder
 }
 
 
-internal class EventSynchronizer : IDisposable // ?¯\_(ツ)_/¯ это класс издатель, он определяет когда событие должно выполняться 
+internal class EventSynchronizer : IDisposable 
 {
-    public event EventHandler? GlobalTimerType1; // для каждого активного канала раз в секунду
+    public event Func<Task>? GlobalTimerType1;
 
     private readonly Random _random = new Random();
 
@@ -74,6 +74,95 @@ internal class EventSynchronizer : IDisposable // ?¯\_(ツ)_/¯ это клас
     {
         _cts = null;
     }
+
+    public async Task ProcessAsyncEvent(Func<Task>? handler1)
+    {
+        if (handler1 == null)
+        {
+            return;
+        }
+
+        // Delegate[] invocationList = handler1.GetInvocationList();
+        //Task[] handlerTasks = new Task[invocationList.Length]; // нафиг массив, сделаю лист
+
+        List<Delegate> invocationList = new List<Delegate>(handler1.GetInvocationList());
+
+        List<Task> handlerTask = new List<Task>(invocationList.Count);
+
+        try
+        {
+            handlerTask = invocationList.Select(async x =>
+            {
+                try
+                {
+                     await ((Func<Task>)x)();
+                }
+
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Сработал catch при обертке элемента {x} handlerTasks в ProcessAsyncEvent | {ex.Message}");
+                    
+                    
+                }
+            }).Where(x => !x.IsFaulted ).ToList(); // моя попытка избежать ошибки, надо додумывать
+
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Сработал catch при handlerTask = invocationList в ProcessAsyncEvent | {ex.Message}");
+            
+        }
+
+        await Task.WhenAll(handlerTask);
+    }
+
+        
+
+/*
+        try
+        {
+            for (int i = 0; i < invocationList.Count; i++)
+            {
+                try
+                {
+                    handlerTasks[i] = ((Func<Task>)invocationList[i])();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Сработал catch при обертке handlerTasks[i] в ProcessAsyncEvent | {ex.Message}");
+                }
+                finally
+                {
+                    handlerTasks[i].Dispose();
+                }
+            }
+            await Task.WhenAll(handlerTasks);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Сработал catch в ProcessAsyncEvent | {ex.Message}");
+        }
+    }*/
+
+    /*public static async Task ProcessAsyncEvent<TEventData>(Func<TEventData, Task>? handler, TEventData args)
+    {
+        if (handler == null)
+        {
+            return;
+        }
+
+        Delegate[] invocationList = handler.GetInvocationList();
+
+        // FUTURE: optimize 1: use stack (span) for the array; optimize 2: simple case if only one handler
+        Task[] handlerTasks = new Task[invocationList.Length];
+
+        for (int i = 0; i < invocationList.Length; i++)
+        {
+            handlerTasks[i] = ((Func<TEventData, Task>)invocationList[i])(args);
+        }
+        await Task.WhenAll(handlerTasks);
+    }*/
 
     public void Dispose()
     {
@@ -125,7 +214,7 @@ internal class EventSynchronizer : IDisposable // ?¯\_(ツ)_/¯ это клас
         while (stop.IsCancellationRequested is false)
         {
             await Task.Delay(1000);
-            GlobalTimerType1?.Invoke(this, EventArgs.Empty);
+            GlobalTimerType1?.Invoke();
         }
     }
 

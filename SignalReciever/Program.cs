@@ -1,13 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
-using SignalRecieverAnalyzer.Connection;
-using SignalRecieverAnalyzer.DataRecieveAndAnalyzer;
-using SignalRecieverAnalyzer.Working;
+﻿using SignalRecieverAnalyzer.Working;
 
 
 namespace SignalReciever
@@ -18,7 +9,7 @@ namespace SignalReciever
         {
             var sync = new StartWorking();
 
-            await sync.StartConnectingToServer(10);
+            await sync.StartConnectingToServer(50);
 
         }
     }
