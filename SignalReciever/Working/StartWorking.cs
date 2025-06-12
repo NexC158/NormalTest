@@ -20,7 +20,6 @@ namespace SignalRecieverAnalyzer.Working
 
         private readonly CancellationTokenSource _ct = new();
 
-
         public async Task StartConnectingToServer(int maxConnections)
         {
             try
@@ -44,7 +43,7 @@ namespace SignalRecieverAnalyzer.Working
 
         private async Task WorkingWithConnection(int connectedId, CancellationToken ct)
         {
-            var data = new DataProcces();
+            var data = new DataProccess();
 
             var connection = await ClientConnection.ConnectionToServerAsync("127.0.0.1", 10000);
 
@@ -55,20 +54,22 @@ namespace SignalRecieverAnalyzer.Working
                 while (true)
                 {
                     var recievedData = await data.ProcessDataAsync(connection, connectedId);
-                    Console.WriteLine($"неВечный цикл | WorkingWithConnection | Клиент {connectedId} получил данные: {recievedData}");
+                    //Console.WriteLine($"Вечный цикл | WorkingWithConnection | Клиент {connectedId} получил данные: {recievedData}"); // выдает что recievedData == -1, не знаю почему
                 }
-                    
-                
+
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Сработал WorkingWithConnection | Ошибка подключения, клиент {connectedId} {ex.Message} ");
-                Console.WriteLine("Пробую реконнектится");
 
-                await Reconnect(connection);
-                
+                Console.WriteLine("Пробую реконнектится (скорее не реконнектится, а создать новое подключение)");
+
+                Interlocked.Decrement(ref _currentConnection); // надо придумать как сделать новое подключение без головной боли и плясок с бубном
+                                                               // во первых надо удалить из словаря отвалившийся сокет                          
+                await Reconnect(connection);                   // во вторых либо на его место засунуть новый, либо просто считать каунтером дальше и не париться
+
+                await Task.Delay(4000);                
             }
-
         }
 
         public async Task Reconnect(ClientConnection connection)

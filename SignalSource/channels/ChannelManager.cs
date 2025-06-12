@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace SignalSource.channels;
@@ -17,10 +18,9 @@ internal class ChannelManager
 
     private readonly EventSynchronizer _sync;
 
-
     private int currnentConnect = 0;
 
-    private readonly Random _random;
+    private readonly Random _random = new Random();
     public ChannelManager(ChannelSender sender, EventsBuilder eventsBuilder, EventSynchronizer sync)
     {
         _sender = sender;
@@ -29,24 +29,41 @@ internal class ChannelManager
 
     }
 
-    public async Task ProccessChannel2( int channelId)
-    {
-        EventHandler handler1 = async (s, e) =>
-        {
-            _ = this._sender.SendTypeOne();
+    public async Task ProccessChannel2(int channelId) // тут надо сделать отслеживание отправки данных
+    {                                                 // типа я кладу хэндлер в очередь а в другом потоке я считаываю очередь и отправляю // Но очередь будет биться, если у меня отвалится какой-то сокет
+        Func<Task> handler1 = async () =>       // Обработчик события                             // так же мне надо синхронизировать отправку, чтобы одно не мешало другому
+        {                                             // , который вызывает SendTypeOne через _sender
+            await this._sender.SendTypeOne(_eventsBuilder.BuildTypeOne());
         };
 
-        this._sync.GlobalTimerType1 += handler1;
+        this._sync.GlobalTimerType1 += handler1; // Обработчик события handler1 подписывается на событие GlobalTimerType1 через объект _sync
 
-        while (_sender.IsConnectd())
+        await _sync.ProcessAsyncEvent(handler1);
+
+        try
         {
-            int timeForNextEvetn2 = _random.Next(1, 1000);
-            await Task.Delay(timeForNextEvetn2);
-            await this._sender.SendTypeTwo();
-        }
+            while (this._sender.IsConnected()) // сюда хочу cts чтобы он существовал в отдельном потоке и срабатывал только когда что-то отвалилось 
+            {
+                int timeForNextEvetn2 = _random.Next(400, 600); // вот тут посчитать как реализовать плотность сигнала
 
-        this._sync.GlobalTimerType1 -= handler1;
+                await Task.Delay(timeForNextEvetn2);
+
+                await this._sender.SendTypeTwo(_eventsBuilder.BuildTypeTwo());
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Сработал catch в методе ProccessChannel2 | {ex.Message}");
+        }
+        finally // у меня неправильно построен блок трай файналли, 
+        {
+            if (this._sender.IsConnected() is false) this._sync.GlobalTimerType1 -= handler1;
+
+        }
     }
+
+
+    
 
 #if false
     public async Task ProccessChannel(ChannelManager channel, int channelId)
