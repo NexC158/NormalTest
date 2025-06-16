@@ -32,7 +32,7 @@ namespace SignalRecieverAnalyzer.Working
             {
                 Console.WriteLine($"StartConnectingToServer | {ex.Message}");
             }
-            
+
         }
 
         private async Task WorkingWithConnection(int connectedId, CancellationToken ct)
@@ -41,7 +41,7 @@ namespace SignalRecieverAnalyzer.Working
 
             var connection = await ClientConnection.ConnectionToServerAsync("127.0.0.1", 10000);
 
-           
+
             Console.WriteLine($"Сработал WorkingWithConnection | Подключен клиент: {connectedId}");
 
             try
@@ -50,6 +50,20 @@ namespace SignalRecieverAnalyzer.Working
                 {
                     await data.DataFilterAsync(connection, connectedId);
                     //Console.WriteLine($"неВечный цикл | WorkingWithConnection | Клиент {connectedId} получил данные: {recievedData}");
+
+                    /*var recievedData =*/
+                    await data.DataFilterAsync(connection, connectedId);
+
+                    if (ct.IsCancellationRequested) break;
+
+                    //Console.WriteLine($"Вечный цикл | WorkingWithConnection | Клиент {connectedId} получил данные: {recievedData}"); // выдает что recievedData == -1, не знаю почему
+
+                    /*var recievedData =*/
+                    await data.DataFilterAsync(connection, connectedId);
+
+                    if (ct.IsCancellationRequested) break;
+
+                    //Console.WriteLine($"Вечный цикл | WorkingWithConnection | Клиент {connectedId} получил данные: {recievedData}"); // выдает что recievedData == -1, не знаю почему
                 }
 
             }
