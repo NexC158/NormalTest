@@ -7,7 +7,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using SignalRecieverAnalyzer.Connection;
-using SignalRecieverAnalyzer.DataRecieveAndAnalyzer;
+using SignalRecieverAnalyzer.Data;
 
 
 namespace SignalRecieverAnalyzer.Working
@@ -53,7 +53,9 @@ namespace SignalRecieverAnalyzer.Working
             {
                 while (true)
                 {
-                    var recievedData = await data.DataFilterAsync(connection, connectedId);
+                    /*var recievedData =*/ await data.DataFilterAsync(connection, connectedId);
+
+                    if (ct.IsCancellationRequested) break;
                     //Console.WriteLine($"Вечный цикл | WorkingWithConnection | Клиент {connectedId} получил данные: {recievedData}"); // выдает что recievedData == -1, не знаю почему
                 }
 

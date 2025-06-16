@@ -68,8 +68,6 @@ internal class ChannelManager
     {
         // Вот тут я должен сделать таймеры и через них инвокать события. А события должны запускать методы из класса ChannelSender 
 
-        
-
         var personalTimerForType2 = new System.Timers.Timer(500);
 
         globalTimerForType1.Elapsed += (s, e) =>

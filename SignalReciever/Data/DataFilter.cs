@@ -4,7 +4,8 @@ using System.Net.Sockets;
 using System.Text;
 using SignalRecieverAnalyzer.Connection;
 
-namespace SignalRecieverAnalyzer.DataRecieveAndAnalyzer
+
+namespace SignalRecieverAnalyzer.Data
 {
     internal class DataFilter
     {
@@ -12,13 +13,17 @@ namespace SignalRecieverAnalyzer.DataRecieveAndAnalyzer
 
         private static int _size = 4;
 
+        private DataAnalyze _analyze = new();
+
+        private readonly object _lock = new object();
+
         enum DataTypes : byte // byte??int
         {
             first,
             second
         }
 
-        public async Task<double> DataFilterAsync(ClientConnection connectionSocket, int currentId) // Думаю обработку надо будет делать чанками как в майнкрафте
+        public async Task DataFilterAsync(ClientConnection connectionSocket, int currentId) // Думаю обработку надо будет делать чанками как в майнкрафте
         {
             
                 byte[] buffer = new byte[_bufferSize];
@@ -53,7 +58,14 @@ namespace SignalRecieverAnalyzer.DataRecieveAndAnalyzer
                 {
                     doubleValue = BitConverter.ToDouble(buffer, 5);
 
-                    Console.WriteLine($"Сработал метод ProcessDataAsync | Клиент {currentId} | Принято {size} байт | Полученное значение {doubleValue}");
+                    await _analyze.ProcessDataAsync(doubleValue, currentId);
+
+                   await Task.Run(() => _analyze.MyEnqueue(doubleValue));
+
+                //await _analyze.ProcessDataAsync(doubleValue, currentId);
+
+
+                Console.WriteLine($"Сработал метод ProcessDataAsync | Клиент {currentId} | Принято {size} байт | Полученное значение {doubleValue}");
                 }
                 else if (size < _bufferSize)
                 {
@@ -79,11 +91,12 @@ namespace SignalRecieverAnalyzer.DataRecieveAndAnalyzer
 
                 }
 
-                return doubleValue;
+                
+            //return doubleValue;
             
-        } // написать каунтер 
+        } 
     }
-}
+}// написать каунтер 
 
 
 
