@@ -60,7 +60,7 @@ namespace SignalRecieverAnalyzer.Data
 
                     await _analyze.ProcessDataAsync(doubleValue, currentId);
 
-                   await Task.Run(() => _analyze.MyEnqueue(doubleValue));
+                   
 
                 //await _analyze.ProcessDataAsync(doubleValue, currentId);
 

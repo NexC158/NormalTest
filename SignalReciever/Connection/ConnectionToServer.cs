@@ -1,16 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Net;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+﻿using System.Net.Sockets;
 
 namespace SignalRecieverAnalyzer.Connection;
-
-
 internal class ClientConnection
 {
     public Socket _connectionToServerSocket { get; private set; }
@@ -27,5 +17,10 @@ internal class ClientConnection
         await connectionSoket.ConnectAsync(ip, port);
 
         return new ClientConnection(connectionSoket);
+    }
+
+    public bool IsConnected()
+    {
+        return _connectionToServerSocket.Connected;
     }
 }

@@ -52,53 +52,53 @@ namespace SignalRecieverAnalyzer.Data
              
 
         }
-        public ConcurrentQueue<double> _doubleQueue = new ConcurrentQueue<double>();
 
         public async Task ProcessDataAsync(double value, int clientId)
         {
             try
             {
-                
-                    if (_previousValue.HasValue is false)
-                    {
-                        _previousValue = value;
+                if (_previousValue.HasValue is false)
+                {
+                    _previousValue = value;
 
-                        _previousClientId = clientId;
+                    _previousClientId = clientId;
+                }
+
+                else
+                {
+                    var troyka = new double[3];
+
+                    troyka[0] = _previousValue.Value; // тут вроде не та логика
+
+                    var raznica = Math.Abs(troyka[0] - value);
+
+                    if (raznica > 0.5)
+                    {
+                        troyka[2] = raznica;
+
+                        troyka[1] = Interlocked.Increment(ref _shiftId);
                     }
                     else
                     {
-                        var troyka = new double[3];
-
-                        troyka[0] = _previousValue.Value; // тут вроде не та логика
-
-                        troyka[1] = value;
-
-                        if (Math.Abs(troyka[0] - troyka[1]) > 0.5)
-                        {
-                            troyka[2] = Interlocked.Increment(ref _shiftId);
-                        }
-                        else
-                        {
-                            troyka[2] = (double)_shiftId;
-                        }
-
-                        Console.WriteLine($"Результат тройки: клиент {_previousClientId} значение {_previousValue} | клиент {clientId} значение {value} | сдвиг {_shiftId}");
+                        troyka[2] = 0;
                     }
-                    
-                
+
+                    _previousValue = value;
+
+                    _previousClientId = clientId;
+
+                    Console.WriteLine($"Результат тройки:  {troyka[0]} | {troyka[1]} | {troyka[2]}");
+                }
+
+
                 await Task.CompletedTask;
             }
 
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 Console.WriteLine($"Сработал catch в методе ProcessDataAsync | {ex.Message}");
             }
 
-        }
-
-        public void MyEnqueue(double value)
-        {
-            _doubleQueue.Enqueue(value);
         }
 
         public void Dispose()
