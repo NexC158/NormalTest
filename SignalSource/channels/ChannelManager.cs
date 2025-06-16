@@ -35,15 +35,11 @@ internal class ChannelManager
         };
 
         this._sync.GlobalTimerType1 += handler1; // Обработчик события handler1 подписывается на событие GlobalTimerType1 через объект _sync
-
-        await _sync.ProcessAsyncEvent(handler1);
-
         try
         {
             while (this._sender.IsConnected()) // сюда хочу cts чтобы он существовал в отдельном потоке и срабатывал только когда что-то отвалилось 
             {
                 int timeForNextEvetn2 = _random.Next(400, 600); // вот тут посчитать как реализовать плотность сигнала
-
                 await Task.Delay(timeForNextEvetn2);
 
                 await this._sender.SendTypeTwo(_eventsBuilder.BuildTypeTwo());
@@ -53,15 +49,11 @@ internal class ChannelManager
         {
             Console.WriteLine($"Сработал catch в методе ProccessChannel2 | {ex.Message}");
         }
-        finally // у меня неправильно построен блок трай файналли, 
+        finally // у меня неправильно построен блок трай файналли,
         {
-            if (this._sender.IsConnected() is false) this._sync.GlobalTimerType1 -= handler1;
-
+            this._sync.GlobalTimerType1 -= handler1;
         }
     }
-
-
-    
 
 #if false
     public async Task ProccessChannel(ChannelManager channel, int channelId)

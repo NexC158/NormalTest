@@ -43,15 +43,16 @@ namespace SignalRecieverAnalyzer.Working
 
 
             Console.WriteLine($"Сработал WorkingWithConnection | Подключен клиент: {connectedId}");
-
+            bool doReconnect = true;
             try
             {
-                while (true)
+                while (connection.IsConnected())
                 {
                     await data.DataFilterAsync(connection, connectedId);
                     //Console.WriteLine($"неВечный цикл | WorkingWithConnection | Клиент {connectedId} получил данные: {recievedData}");
-
                 }
+
+                doReconnect = true;
 
             }
             catch (Exception ex)
@@ -59,7 +60,11 @@ namespace SignalRecieverAnalyzer.Working
                 Console.WriteLine($"Сработал WorkingWithConnection | Ошибка подключения, клиент {connectedId} {ex.Message} ");
 
                 Console.WriteLine("Пробую реконнектится (скорее не реконнектится, а создать новое подключение)");
+                doReconnect = true;
+            }
 
+            if (doReconnect)
+            {
                 DisResConnect(connection, connectedId);
             }
         }
@@ -71,7 +76,6 @@ namespace SignalRecieverAnalyzer.Working
                 if (oldConnection.IsConnected() is false) // возможно сюда надо поставить лок
                 {
                     oldConnection._connectionToServerSocket.Shutdown(SocketShutdown.Both);
-
                     oldConnection._connectionToServerSocket.Close();
 
                     Task newTask = WorkingWithConnection(badConnectedId, _ct.Token);

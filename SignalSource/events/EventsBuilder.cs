@@ -75,7 +75,7 @@ internal class EventSynchronizer : IDisposable
         _cts = null;
     }
 
-    public async Task ProcessAsyncEvent(Func<Task>? handler1)
+    private async Task ProcessAsyncEvent(Func<Task>? handler1)
     {
         if (handler1 == null)
         {
@@ -101,8 +101,6 @@ internal class EventSynchronizer : IDisposable
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Сработал catch при обертке элемента {x} handlerTasks в ProcessAsyncEvent | {ex.Message}");
-                    
-                    
                 }
             }).Where(x => !x.IsFaulted ).ToList(); // моя попытка избежать ошибки, надо додумывать
 
@@ -214,7 +212,7 @@ internal class EventSynchronizer : IDisposable
         while (stop.IsCancellationRequested is false)
         {
             await Task.Delay(1000);
-            GlobalTimerType1?.Invoke();
+            await ProcessAsyncEvent(GlobalTimerType1);
         }
     }
 
