@@ -51,19 +51,6 @@ namespace SignalRecieverAnalyzer.Working
                     await data.DataFilterAsync(connection, connectedId);
                     //Console.WriteLine($"неВечный цикл | WorkingWithConnection | Клиент {connectedId} получил данные: {recievedData}");
 
-                    /*var recievedData =*/
-                    await data.DataFilterAsync(connection, connectedId);
-
-                    if (ct.IsCancellationRequested) break;
-
-                    //Console.WriteLine($"Вечный цикл | WorkingWithConnection | Клиент {connectedId} получил данные: {recievedData}"); // выдает что recievedData == -1, не знаю почему
-
-                    /*var recievedData =*/
-                    await data.DataFilterAsync(connection, connectedId);
-
-                    if (ct.IsCancellationRequested) break;
-
-                    //Console.WriteLine($"Вечный цикл | WorkingWithConnection | Клиент {connectedId} получил данные: {recievedData}"); // выдает что recievedData == -1, не знаю почему
                 }
 
             }
