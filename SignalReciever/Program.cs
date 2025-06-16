@@ -9,7 +9,7 @@ namespace SignalReciever
         {
             var sync = new StartWorking();
 
-            await sync.StartConnectingToServer(4);
+            await sync.StartConnectingToServer(10);
 
         }
     }
