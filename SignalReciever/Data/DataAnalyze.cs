@@ -41,16 +41,14 @@ namespace SignalRecieverAnalyzer.Data
         {
             Task.Run(async () =>
             {
-                while(await _channel.Reader.WaitToReadAsync(_cts.Token))
+                while (await _channel.Reader.WaitToReadAsync(_cts.Token))
                 {
-                    while(_channel.Reader.TryRead(out var value))
+                    while (_channel.Reader.TryRead(out var value))
                     {
                         ProcessDataAsync(value.value, value.clientId);
                     }
                 }
             }, _cts.Token);
-             
-
         }
 
         public async Task ProcessDataAsync(double value, int clientId)
@@ -68,7 +66,7 @@ namespace SignalRecieverAnalyzer.Data
                 {
                     var troyka = new double[3];
 
-                    troyka[0] = _previousValue.Value; // тут вроде не та логика
+                    troyka[0] = _previousValue.Value;
 
                     var raznica = Math.Abs(troyka[0] - value);
 
@@ -89,8 +87,6 @@ namespace SignalRecieverAnalyzer.Data
 
                     Console.WriteLine($"Результат тройки:  {troyka[0]} | {troyka[1]} | {troyka[2]}");
                 }
-
-
                 await Task.CompletedTask;
             }
 
@@ -98,12 +94,11 @@ namespace SignalRecieverAnalyzer.Data
             {
                 Console.WriteLine($"Сработал catch в методе ProcessDataAsync | {ex.Message}");
             }
-
         }
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(); // todo
         }
     }
 }
