@@ -30,7 +30,7 @@ internal class EventsBuilder
 
     public byte[] BuildTypeTwo()
     {
-        var randomLenght = _random.Next(1, 1000);
+        var randomLenght = _random.Next(1, 100000);
 
         var secondTypeData = new byte[randomLenght];
 
@@ -87,24 +87,21 @@ internal class EventSynchronizer : IDisposable
 
         List<Delegate> invocationList = new List<Delegate>(handler1.GetInvocationList());
 
-        List<Task> handlerTask = new List<Task>(invocationList.Count);
+        Task[] handlerTask = new Task [invocationList.Count];
 
         try
         {
-            handlerTask = invocationList.Select(async x =>
+            handlerTask = invocationList.Select(async x => // мб переписать на for
             {
                 try
                 {
                      await ((Func<Task>)x)();
                 }
-
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Сработал catch при обертке элемента {x} handlerTasks в ProcessAsyncEvent | {ex.Message}");
                 }
-            }).Where(x => !x.IsFaulted ).ToList(); // моя попытка избежать ошибки, надо додумывать
-
-
+            }).Where(x => !x.IsFaulted ).ToArray(); // https://stackoverflow.com/questions/1105990/is-it-better-to-call-tolist-or-toarray-in-linq-queries что лист что массив работают одинаково
         }
         catch (Exception ex)
         {
@@ -114,53 +111,6 @@ internal class EventSynchronizer : IDisposable
 
         await Task.WhenAll(handlerTask);
     }
-
-        
-
-/*
-        try
-        {
-            for (int i = 0; i < invocationList.Count; i++)
-            {
-                try
-                {
-                    handlerTasks[i] = ((Func<Task>)invocationList[i])();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Сработал catch при обертке handlerTasks[i] в ProcessAsyncEvent | {ex.Message}");
-                }
-                finally
-                {
-                    handlerTasks[i].Dispose();
-                }
-            }
-            await Task.WhenAll(handlerTasks);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Сработал catch в ProcessAsyncEvent | {ex.Message}");
-        }
-    }*/
-
-    /*public static async Task ProcessAsyncEvent<TEventData>(Func<TEventData, Task>? handler, TEventData args)
-    {
-        if (handler == null)
-        {
-            return;
-        }
-
-        Delegate[] invocationList = handler.GetInvocationList();
-
-        // FUTURE: optimize 1: use stack (span) for the array; optimize 2: simple case if only one handler
-        Task[] handlerTasks = new Task[invocationList.Length];
-
-        for (int i = 0; i < invocationList.Length; i++)
-        {
-            handlerTasks[i] = ((Func<TEventData, Task>)invocationList[i])(args);
-        }
-        await Task.WhenAll(handlerTasks);
-    }*/
 
     public void Dispose()
     {

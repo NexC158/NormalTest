@@ -14,3 +14,4 @@ IList<ArraySegment> для dataProcessing
 
 стэк аллокейт : var sizeBytes = new byte[_size];
 
+ProccessChannel2 прокинуть ct

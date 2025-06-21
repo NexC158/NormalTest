@@ -33,8 +33,14 @@ internal class ChannelSender
 
     internal bool IsConnected()
     {
-        if (_clientSocket.Connected) return true;
-        return false;
+        if (_clientSocket.Connected)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 }
 

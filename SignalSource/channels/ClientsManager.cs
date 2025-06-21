@@ -54,19 +54,7 @@ internal class ClientsManager
         catch (Exception ex)
         {
             Console.WriteLine($"Сработал catch в HandleChannelProcessing | {ex.Message}");
-
-            // вот тут сделать ожидание для реконнекта, и уже в нем отменять подписки после какого-то числа безуспешных попыток реконнекта
-
-            //_channelsDict.TryRemove(channelId, out channel);
-
-            //await channel.UnsubscribeChannel();
         }
-        //finally
-        //{
-        //    await Task.Delay(1000);
-        //    await channel.UnsubscribeChannel();
-        //_channelsDict.TryRemove(channelId, out channel);// remove channel from dict
-        //}
     }
 }
 

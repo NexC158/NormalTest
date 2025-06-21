@@ -12,19 +12,23 @@ namespace SignalRecieverAnalyzer.Working
 
         private int _currentConnection = 0;
 
-        private readonly CancellationTokenSource _ct = new();
+        private readonly CancellationTokenSource _ct = new(); // TODO сделать локальный ct для точечной отмены
 
-        public async Task StartConnectingToServer(int maxConnections)
+        private readonly DataAnalyze dataAnalyzer = new DataAnalyze();
+
+        public async Task StartConnectingToServer(int countConnections)
         {
             try
             {
-                for (int i = 0; i < maxConnections; i++)
+                for (int i = 0; i < countConnections; i++)
                 {
                     var connectedId = Interlocked.Increment(ref _currentConnection);
 
                     Console.WriteLine($"Сработал StartConnectingToServer | Начинаю попытку подключения для {connectedId} клиента");
 
-                    _connectionTasks.TryAdd(connectedId, WorkingWithConnection(connectedId, _ct.Token));
+                    var newTaskConnection = WorkingWithConnection(connectedId, _ct.Token);
+
+                    _connectionTasks.TryAdd(connectedId, newTaskConnection);
                 }
                 await Task.WhenAll(_connectionTasks.Values);
             }
@@ -32,61 +36,86 @@ namespace SignalRecieverAnalyzer.Working
             {
                 Console.WriteLine($"StartConnectingToServer | {ex.Message}");
             }
-
         }
 
         private async Task WorkingWithConnection(int connectedId, CancellationToken ct)
         {
-            var data = new DataFilter();
+            var dataFilter = new DataFilter();
+           
+            ClientConnection connection = null;
 
-            var connection = await ClientConnection.ConnectionToServerAsync("127.0.0.1", 10000);
-
-
-            Console.WriteLine($"Сработал WorkingWithConnection | Подключен клиент: {connectedId}");
-            bool doReconnect = true;
-            try
+            while (connection == null)
             {
-                while (connection.IsConnected())
+                try
                 {
-                    await data.DataFilterAsync(connection, connectedId);
-                    //Console.WriteLine($"неВечный цикл | WorkingWithConnection | Клиент {connectedId} получил данные: {recievedData}");
+                    connection = await ClientConnection.ConnectionToServerAsync("127.0.0.1", 10000, ct);
+                    Console.WriteLine($"Сработал WorkingWithConnection | Подключен клиент: {connectedId}");
                 }
-
-                doReconnect = true;
-
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Сработал WorkingWithConnection | Ошибка подключения, клиент {connectedId} {ex.Message} ");
-
-                Console.WriteLine("Пробую реконнектится (скорее не реконнектится, а создать новое подключение)");
-                doReconnect = true;
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Сработал catch WorkingWithConnection | Попытка подключения для клиента {connectedId} провелена, пробую заново | {ex.Message}");
+                }
             }
 
-            if (doReconnect)
+            while (ct.IsCancellationRequested is false)
             {
-                DisResConnect(connection, connectedId);
+                try
+                {
+                    await foreach (var data in dataFilter.DataFilterAsync(connection, connectedId, ct))// данные с этого foreach должен брать аналайзер
+                    {
+                        await dataAnalyzer.WriteToChannelAsync(data, ct);
+                    }
+                    
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Сработал catch WorkingWithConnection | Ошибка подключения, клиент {connectedId} {ex.Message} ");
+                }
+                finally
+                {
+                    connection.SocketDisconnect();
+
+                    try
+                    {
+                        connection = await ClientConnection.ConnectionToServerAsync("127.0.0.1", 10000, ct);
+                        ResetConnection(connectedId, ct);
+                        Console.WriteLine($"Сработал finally в WorkingWithConnection | клиент {connectedId} переподключен");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Что-то не так | cработал catch в finally в WorkingWithConnection |{ex.Message}");
+                    }
+                    
+                }
             }
         }
 
-        public void DisResConnect(ClientConnection oldConnection, int badConnectedId)
+        public void ResetConnection(int badConnectedId, CancellationToken ct)
         {
             try
             {
-                if (oldConnection.IsConnected() is false) // возможно сюда надо поставить лок
-                {
-                    oldConnection._connectionToServerSocket.Shutdown(SocketShutdown.Both);
-                    oldConnection._connectionToServerSocket.Close();
-
-                    Task newTask = WorkingWithConnection(badConnectedId, _ct.Token);
-
-                    _connectionTasks.TryUpdate(badConnectedId, newTask, newTask);
-                }
-                else return;
+                var newTaskConnectoin = WorkingWithConnection(badConnectedId, ct);
+                // if (_connectionTasks.TryGetValue(connectedId, out Task oldTask))
+                _connectionTasks.TryUpdate(badConnectedId, newTaskConnectoin, _connectionTasks[badConnectedId]);
+                // else _connectionTasks.TryAdd(connectedId, newTaskConnectoin);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Ошибка в методе Disconnect | {ex.Message}");
+            }
+        }
+
+        public async Task StopAllOperations()
+        {
+            _ct.Cancel();
+
+            try
+            {
+                await Task.WhenAll(_connectionTasks.Values);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка отмены задач | {ex.Message}");
             }
         }
     }
