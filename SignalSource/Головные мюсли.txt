@@ -15,3 +15,10 @@ IList<ArraySegment> для dataProcessing
 стэк аллокейт : var sizeBytes = new byte[_size];
 
 ProccessChannel2 прокинуть ct
+
+
+
+links: 
+
+https://learn.microsoft.com/en-us/aspnet/core/signalr/java-client?view=aspnetcore-9.0
+https://learn.microsoft.com/en-us/aspnet/core/signalr/streaming?view=aspnetcore-7.0#client-to-server-streaming
