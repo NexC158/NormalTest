@@ -15,8 +15,6 @@ namespace SignalRecieverAnalyzer.Data
 
         private readonly int _intSizeOfBytesArray = 4;
 
-        private DataAnalyze _analyze = new();
-
         enum DataTypes : byte
         {
             first,
@@ -31,7 +29,6 @@ namespace SignalRecieverAnalyzer.Data
 
             while (ct.IsCancellationRequested is false)
             {
-
                 try
                 {
                     received = await connectionSocket.MyReceiveAsync(buffer, 0, ct);

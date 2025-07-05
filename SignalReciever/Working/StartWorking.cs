@@ -8,13 +8,13 @@ namespace SignalRecieverAnalyzer.Working
 {
     internal class StartWorking
     {
-        private ConcurrentDictionary<int, Task> _connectionTasks = new ConcurrentDictionary<int, Task>();
+        private readonly ConcurrentDictionary<int, Task> _connectionTasks = new();
 
         private int _currentConnection = 0;
 
         private readonly CancellationTokenSource _ct = new(); // TODO сделать локальный ct для точечной отмены
 
-        private readonly DataAnalyze dataAnalyzer = new DataAnalyze();
+        private readonly DataAnalyze dataAnalyzer = new ();
 
         public async Task StartConnectingToServer(int countConnections)
         {
@@ -41,9 +41,38 @@ namespace SignalRecieverAnalyzer.Working
         private async Task WorkingWithConnection(int connectedId, CancellationToken ct)
         {
             var dataFilter = new DataFilter();
-           
+
             ClientConnection connection = null;
 
+            connection = await CreateConnection(connection, connectedId, ct);
+
+            while (ct.IsCancellationRequested is false)
+            {
+                try
+                {
+                    await foreach (var data in dataFilter.DataFilterAsync(connection, connectedId, ct))
+                    {
+                        await dataAnalyzer.WriteToChannelAsync(data, ct);
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Сработал catch WorkingWithConnection | Ошибка подключения, клиент {connectedId} {ex.Message} ");
+                }
+                finally
+                {
+                    connection.SocketDisconnect();
+                    connection = await CreateConnection(connection, connectedId, ct);
+
+                    ResetConnection(connection, connectedId, ct);
+                    Console.WriteLine($"Сработал finally в WorkingWithConnection | клиент {connectedId} переподключен");
+                }
+            }
+        }
+
+        private async Task<ClientConnection> CreateConnection(ClientConnection connection, int connectedId, CancellationToken ct)
+        {
             while (connection == null)
             {
                 try
@@ -53,51 +82,22 @@ namespace SignalRecieverAnalyzer.Working
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Сработал catch WorkingWithConnection | Попытка подключения для клиента {connectedId} провелена, пробую заново | {ex.Message}");
+                    Console.WriteLine($"Сработал catch WorkingWithConnection | Попытка подключения для клиента {connectedId} провелена, пробую заново через секунду | {ex.Message}");
+                    await Task.Delay(1000, ct);
                 }
             }
 
-            while (ct.IsCancellationRequested is false)
-            {
-                try
-                {
-                    await foreach (var data in dataFilter.DataFilterAsync(connection, connectedId, ct))// данные с этого foreach должен брать аналайзер
-                    {
-                        await dataAnalyzer.WriteToChannelAsync(data, ct);
-                    }
-                    
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Сработал catch WorkingWithConnection | Ошибка подключения, клиент {connectedId} {ex.Message} ");
-                }
-                finally
-                {
-                    connection.SocketDisconnect();
-
-                    try
-                    {
-                        connection = await ClientConnection.ConnectionToServerAsync("127.0.0.1", 10000, ct);
-                        ResetConnection(connectedId, ct);
-                        Console.WriteLine($"Сработал finally в WorkingWithConnection | клиент {connectedId} переподключен");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Что-то не так | cработал catch в finally в WorkingWithConnection |{ex.Message}");
-                    }
-                    
-                }
-            }
+            return connection;
         }
 
-        public void ResetConnection(int badConnectedId, CancellationToken ct)
+        public void ResetConnection(ClientConnection connection, int badConnectedId, CancellationToken ct)
         {
             try
             {
-                var newTaskConnectoin = WorkingWithConnection(badConnectedId, ct);
-                // if (_connectionTasks.TryGetValue(connectedId, out Task oldTask))
+                var newTaskConnectoin = WorkingWithConnection(badConnectedId, ct); // проблема в этом
                 _connectionTasks.TryUpdate(badConnectedId, newTaskConnectoin, _connectionTasks[badConnectedId]);
-                // else _connectionTasks.TryAdd(connectedId, newTaskConnectoin);
+                // возможно стоит класть в словарь не таску WorkingWithConnection, а как раз await foreach (var data in dataFilter.DataFilterAsync(connection, connectedId, ct))
+                // чтобы было проще разделять
             }
             catch (Exception ex)
             {
