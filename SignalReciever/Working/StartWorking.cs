@@ -65,7 +65,6 @@ namespace SignalRecieverAnalyzer.Working
                     connection.SocketDisconnect();
                     connection = await CreateConnection(connection, connectedId, ct);
 
-                    ResetConnection(connection, connectedId, ct);
                     Console.WriteLine($"Сработал finally в WorkingWithConnection | клиент {connectedId} переподключен");
                 }
             }
@@ -88,21 +87,6 @@ namespace SignalRecieverAnalyzer.Working
             }
 
             return connection;
-        }
-
-        public void ResetConnection(ClientConnection connection, int badConnectedId, CancellationToken ct)
-        {
-            try
-            {
-                var newTaskConnectoin = WorkingWithConnection(badConnectedId, ct); // проблема в этом
-                _connectionTasks.TryUpdate(badConnectedId, newTaskConnectoin, _connectionTasks[badConnectedId]);
-                // возможно стоит класть в словарь не таску WorkingWithConnection, а как раз await foreach (var data in dataFilter.DataFilterAsync(connection, connectedId, ct))
-                // чтобы было проще разделять
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Ошибка в методе Disconnect | {ex.Message}");
-            }
         }
 
         public async Task StopAllOperations()

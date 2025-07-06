@@ -27,7 +27,7 @@ namespace SignalRecieverAnalyzer.Data
 
             int received = 0;
 
-            while (ct.IsCancellationRequested is false)
+            while (ct.IsCancellationRequested is false) 
             {
                 try
                 {
@@ -66,14 +66,6 @@ namespace SignalRecieverAnalyzer.Data
                     var buffer1 = new byte[size - buffer.Length];
                     received = await connectionSocket.MyReceiveAsync(buffer1, 0, ct);
 
-                    if (buffer[4] == type2)
-                    {
-                        //Console.WriteLine($"Сработал метод DataFilterAsync | Прочитал весь шум | Клиент {currentId} | Все четко продолжаем");
-                    }
-                    else
-                    {
-                        //Console.WriteLine($"Сработал метод DataFilterAsync | Шум | Клиент {currentId} | Что-то тут нечисто");
-                    }
                 }
             }
         }

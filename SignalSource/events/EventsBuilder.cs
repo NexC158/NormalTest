@@ -15,7 +15,7 @@ internal class EventsBuilder
 
     enum DataTypes : byte // byte??int
     {
-        first,
+        first, // добавить можно нотаксептед
         second
     }
 
@@ -45,7 +45,7 @@ internal class EventsBuilder
     {
         var typeByte = new byte[] { (byte)dataType };
 
-        int size = sizeof(uint) + typeByte.Length + dataToSend.Length;
+        var size = sizeof(uint) + typeByte.Length + dataToSend.Length;
 
         var size2Bytes = BitConverter.GetBytes(size);
 
@@ -65,8 +65,6 @@ internal class EventsBuilder
 internal class EventSynchronizer : IDisposable 
 {
     public event Func<Task>? GlobalTimerType1;
-
-    private readonly Random _random = new Random();
 
     private CancellationTokenSource? _cts = null;
 
